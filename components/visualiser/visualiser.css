@@ -1,10 +1,15 @@
 .visualiser {
-    font-weight:bold;
+    font-weight: bold;
     font-size: 12px;
-    font-family:Consolas;
+    font-family: Consolas;
     position: relative;
     height: 100% !important;
 }
-#music-player {
 
+#controls {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    padding: 10px 20px;
+    background-color: #c0a16b;
 }
