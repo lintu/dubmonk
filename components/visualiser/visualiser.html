@@ -1,0 +1,108 @@
+<div class="visualiser">
+    <div class="row no-margin" style="height: 100%;">
+        <div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 no-padding" style="height: 100%;">
+            <canvas id="visualiser" style="width: 100%; height: 100%; display: block"></canvas>
+        </div>
+    </div>
+    <div style="position: absolute; bottom: 80px; width: 100%; padding: 0px 20px; ">
+       <section>
+            <button type="button" class="btn-primary btn-sm" id="fullscreen-button"
+                    ng-click="ctrl.goFullScreen()">FS
+            </button>
+        </section>
+
+        <section class="bordered-section">
+            <span>Volume: {{ctrl.gainValue}}</span>
+            <input type="range" name="gain" min="0" max="10" ng-model="ctrl.gainValue"
+                   ng-change="ctrl.gainValueChanged()">
+
+        </section>
+        <section class="bordered-section">
+            <span>Toggle Layers</span>
+
+            <div class="row">
+                <div class="col-sm-6"><span>TimeDomainData</span></div>
+
+                <div class="col-sm-6">
+                    <div class="btn-group" role="group" aria-label="Toggle layers">
+                        <button type="button" class="btn-primary btn-sm" class="btn btn-secondary"
+                                ng-click="ctrl.showTimeDomainGraph = true">On
+                        </button>
+                        <button type="button" class="btn-primary btn-sm" class="btn btn-secondary"
+                                ng-click="ctrl.showTimeDomainGraph = false">
+                            Off
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6"><span>Frequency Graph</span></div>
+                <div class="col-sm-6">
+                    <div class="btn-group" role="group" aria-label="Toggle layers">
+                        <button type="button" class="btn-primary btn-sm" class="btn btn-secondary"
+                                ng-click="ctrl.showFrequencyGraph = true">On
+                        </button>
+                        <button type="button" class="btn-primary btn-sm" class="btn btn-secondary"
+                                ng-click="ctrl.showFrequencyGraph = false">Off
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6"><span>Volume Box</span></div>
+                <div class="col-sm-6">
+                    <div class="btn-group" role="group" aria-label="Toggle layers">
+                        <button type="button" class="btn-primary btn-sm" class="btn btn-secondary"
+                                ng-click="ctrl.showVolumeBoxes = true">On
+                        </button>
+                        <button type="button" class="btn-primary btn-sm" class="btn btn-secondary"
+                                ng-click="ctrl.showVolumeBoxes = false">Off
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="bordered-section">
+            <span>Distortion Oversample: {{ctrl.distortionOverSample}}</span>
+            <input type="range" name="oversample" min="0" max="100" ng-model="ctrl.distortionOverSample"
+                   ng-change="ctrl.distortionOverSampleChanged()">
+
+        </section>
+
+        <section class="bordered-section">
+            <span>Biquad Filter: </span>
+            <select ng-model="ctrl.biquadFilterType" ng-change="ctrl.biquadFilterTypeChanged()">
+                <option value="highpass">HighPass</option>
+                <option value="lowpass">LowPass</option>
+                <option value="bandpass">BandPass</option>
+                <option value="lowshelf">LowShelf</option>
+                <option value="highshelf">HighShelf</option>
+                <option value="peaking">Peaking</option>
+                <option value="notch">Notch</option>
+                <option value="allpass">Allpass</option>
+
+            </select>
+            {{ctrl.biquadFrequency}}
+            <input type="range" name="biquadFrequency" min="0" max="10000" ng-model="ctrl.biquadFrequency"
+                   ng-change="ctrl.biquadFrequencyChanged()">
+
+        </section>
+
+    </div>
+    <div style="position: absolute; bottom: 10px; width: 100%; padding: 0px 20px; " class="row">
+        <div class="col-sm-4">
+            <button type="button" ng-show="ctrl.showStartButton" class="btn-primary btn-sm"
+                    clsss="btn-primary btn-sm" ng-click="ctrl.startMusic(0); ctrl.showStartButton = false">Start
+            </button>
+            <button type="button" class="btn-primary btn-sm" ng-click="ctrl.pauseMusic()">Pause</button>
+            <button type="button" class="btn-primary btn-sm" ng-click="ctrl.resumeMusic()">Resume</button>
+        </div>
+        <div id="music-player" class="col-sm-8">
+            <input type="range" name="track" min="0" max="{{ctrl.trackDuration}}" ng-model="ctrl.trackPosition"
+                   ng-change="ctrl.trackPositionChanged()">
+            <span>Total : {{ctrl.trackDuration / 60}}  mins</span>
+            <span>progress : {{ctrl.trackPosition}}</span>
+        </div>
+    </div>
+</div>

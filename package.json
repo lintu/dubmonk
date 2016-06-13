@@ -1,0 +1,25 @@
+{
+  "name": "dubmonk",
+  "version": "1.0.0",
+  "description": "raptorclaw and supertramp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/_lintu/supertramp.git"
+  },
+  "keywords": [
+    "dubmonk"
+  ],
+  "author": "lintuvarghese7@gmail.com",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/_lintu/supertramp#readme",
+  "dependencies": {
+    "express": "^4.13.3",
+    "mongodb": "^2.0.47"
+  },
+  "devDependencies": {
+  }
+}
