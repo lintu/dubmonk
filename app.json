@@ -1,0 +1,21 @@
+{
+  "name": "dubmonk",
+  "scripts": {
+    "postdeploy": "node server.js"
+  },
+  "env": {
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "addons": [
+
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
