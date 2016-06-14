@@ -25,10 +25,12 @@
         var HEIGHT = document.getElementById('visualiser').clientHeight;
 
         this.soundBuffer;
-        this.isPlaying = false;
+        this.isStarted = false;
+        this.isPaused = false;
         //Canvas
         this.canvas = null;
         this.canvasCtx = null;
+        this.animationId;
 
         this.channel1FrequencyData = [];
         this.channel2FrequencyData = [];
@@ -37,7 +39,7 @@
 
         this.canvasBg;
 
-        this.showStartButton = false;
+        this.soundReady = false;
         //Node data
         this.distortionOverSample = 0;
         this.gainValueChanged = gainValueChanged;
@@ -56,7 +58,7 @@
             }
         };
         //Player Controls
-        this.mp3Url = 'components/visualiser/tragedy.mp3';
+        this.mp3Url = 'components/visualiser/songs/tragedy.mp3';
         this.resumeMusic = resumeMusic;
         this.pauseMusic = pauseMusic;
         this.stopMusic = stopMusic;
@@ -74,7 +76,7 @@
 
             _self.canvas.width = WIDTH;
             _self.canvas.height = HEIGHT;
-            _self.canvas.style.backgroundColor = 'rgb(22, 82, 142)';
+            _self.canvas.style.backgroundColor = 'white';
             _self.ctx = _self.canvas.getContext('2d');
 
             initCanvas();
@@ -89,7 +91,7 @@
             _self.canvasBg.addColorStop(0, "#456");
             _self.canvasBg.addColorStop(1, "#200");
 
-            _self.canvas.style.background = 'radial-gradient(circle, #456, #200)';
+            //_self.canvas.style.background = 'radial-gradient(circle, #456, #200)';
         }
 
 
@@ -143,8 +145,8 @@
         function processArrayBuffer(audioData) {
             _self.audioContext.decodeAudioData(audioData, function (buffer) {
                 _self.soundBuffer = buffer;
-                _self.showStartButton = true;
-                //startMusic(0);
+                _self.soundReady = true;
+
                 _self.trackDuration = Math.floor(_self.soundBuffer.duration);
 
                 //startDubbing
@@ -155,22 +157,19 @@
                 _self.channel2TimeDomainData = new Uint8Array(_self.nodes.analyser2.frequencyBinCount);
 
                 $scope.$apply();
-                animate();
             });
         }
 
         function animate() {
+            _self.animationId =  requestAnimationFrame(animate);
 
-            //if (_self.isPlaying) {
-            requestAnimationFrame(animate);
-            //}
             _self.nodes.analyser1.getByteFrequencyData(_self.channel1FrequencyData);
             _self.nodes.analyser2.getByteFrequencyData(_self.channel2FrequencyData);
 
             _self.nodes.analyser1.getByteTimeDomainData(_self.channel1TimeDomainData);
             _self.nodes.analyser2.getByteTimeDomainData(_self.channel2TimeDomainData);
             draw();
-            if (_self.isPlaying) {
+            if (_self.isStarted) {
                 _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
                 $scope.$apply();
             }
@@ -179,7 +178,7 @@
         function draw() {
             _self.ctx.fillStyle = 'white';
             _self.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-            if (_self.isPlaying) {
+            if (_self.isStarted) {
                 drawVolumeBoxes(true);
             }
         }
@@ -232,7 +231,7 @@
         }
 
         function startMusic() {
-            if (_self.nodes.source) {
+            if (_self.nodes.source && _self.soundReady) {
                 if (_self.nodes.source.buffer) {
                     _self.nodes.source.stop();
                 }
@@ -246,16 +245,22 @@
                 _self.startTime = _self.audioContext.currentTime - elapsedTime;
                 _self.nodes.source.start(0, elapsedTime);
 
+
+                animate();
                 // _self.nodes.source.onended = function () {
-                //     _self.isPlaying = false;
+                //     _self.isStarted = false;
                 // };
-                _self.isPlaying = true;
+                _self.isStarted = true;
+            } else {
+                alert('Song is not ready to play');
             }
         }
 
         function resumeMusic() {
             if (_self.audioContext.state === 'suspended') {
                 _self.audioContext.resume().then(function () {
+                    _self.isPaused = false;
+                    animate();
                 });
             }
         }
@@ -263,6 +268,8 @@
         function pauseMusic() {
             if (_self.audioContext.state === 'running') {
                 _self.audioContext.suspend().then(function () {
+                    cancelAnimationFrame(_self.animationId);
+                    _self.isPaused = true;
                 });
             }
         }
@@ -271,10 +278,10 @@
             if (_self.nodes.source) {
                 if (_self.nodes.source.buffer) {
                     _self.nodes.source.stop();
+                    cancelAnimationFrame(_self.animationId);
                 }
                 _self.trackPosition = 0;
-                _self.showStartButton = true;
-                _self.isPlaying = false;
+                _self.isStarted = false;
             }
         }
 
