@@ -25,7 +25,6 @@
         var HEIGHT = document.getElementById('visualiser').clientHeight;
 
         this.soundBuffer;
-        this.isStarted = false;
         this.isPaused = false;
         //Canvas
         this.canvas = null;
@@ -39,9 +38,7 @@
 
         this.canvasBg;
 
-        this.soundReady = false;
         //Node data
-        this.distortionOverSample = 0;
         this.gainValueChanged = gainValueChanged;
         this.gainValue = 10;
 
@@ -58,15 +55,15 @@
             }
         };
         //Player Controls
-        this.mp3Url = 'components/visualiser/songs/tragedy.mp3';
+        this.mp3Url = 'components/visualiser/songs/mallu.mp3';
         this.resumeMusic = resumeMusic;
         this.pauseMusic = pauseMusic;
         this.stopMusic = stopMusic;
         this.startMusic = startMusic;
         this.trackPositionChanged = trackPositionChanged;
-        this.trackDuration = 1;
+        this.trackDuration = '0.00';
         this.trackPosition = 0;
-
+        this.secondsToDuration = secondsToDuration;
 
         init();
         function init() {
@@ -127,7 +124,6 @@
 
             _self.nodes.merger.connect(_self.nodes.distortion, 0, 0);
             _self.nodes.distortion.connect(_self.nodes.biquad);
-            //_self.nodes.convolver.connect(_self.nodes.biquad, 0, 0);
             _self.nodes.biquad.connect(_self.nodes.gain, 0, 0);
             _self.nodes.gain.connect(_self.audioContext.destination, 0, 0);
         }
@@ -145,7 +141,6 @@
         function processArrayBuffer(audioData) {
             _self.audioContext.decodeAudioData(audioData, function (buffer) {
                 _self.soundBuffer = buffer;
-                _self.soundReady = true;
 
                 _self.trackDuration = Math.floor(_self.soundBuffer.duration);
 
@@ -157,6 +152,7 @@
                 _self.channel2TimeDomainData = new Uint8Array(_self.nodes.analyser2.frequencyBinCount);
 
                 $scope.$apply();
+                startMusic(0);
             });
         }
 
@@ -168,19 +164,17 @@
 
             _self.nodes.analyser1.getByteTimeDomainData(_self.channel1TimeDomainData);
             _self.nodes.analyser2.getByteTimeDomainData(_self.channel2TimeDomainData);
-            draw();
-            if (_self.isStarted) {
+            //if(!_self.isPaused) {
+                draw();
                 _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
                 $scope.$apply();
-            }
+            //}
         }
 
         function draw() {
             _self.ctx.fillStyle = 'white';
             _self.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-            if (_self.isStarted) {
-                drawVolumeBoxes(true);
-            }
+            drawVolumeBoxes(true);
         }
 
 
@@ -192,13 +186,13 @@
 
             this.color = c;
             this.strokeColor = '#7F8283';
+
             this.draw = function () {
-                //if (r2 > r1) {
                 _self.ctx.beginPath();
                 _self.ctx.arc(x, y, this.r2, 0, 2 * Math.PI, false);
                 _self.ctx.fillStyle = this.color;
                 _self.ctx.fill();
-                //}
+
                 _self.ctx.beginPath();
                 _self.ctx.arc(x, y, this.r1, 0, 2 * Math.PI, false);
                 _self.ctx.lineWidth = this.r2 / 7;
@@ -227,50 +221,45 @@
         }
 
         function trackPositionChanged() {
-            startMusic(Number(_self.trackPosition));
+            if(_self.isPaused) {
+                pauseMusic();
+                cancelAnimationFrame(_self.animationId);
+            } else {
+                startMusic(Number(_self.trackPosition));
+            }
         }
 
-        function startMusic() {
-            if (_self.nodes.source && _self.soundReady) {
+        function startMusic(startFrom) {
+            if (_self.nodes.source) {
                 if (_self.nodes.source.buffer) {
                     _self.nodes.source.stop();
                 }
-                //if(trackPosition > 0) {
-                var elapsedTime = Number(_self.trackPosition);
-                //}
+
                 _self.nodes.source = _self.audioContext.createBufferSource();
                 _self.nodes.source.buffer = _self.soundBuffer;
-
                 _self.nodes.source.connect(_self.nodes.splitter);
-                _self.startTime = _self.audioContext.currentTime - elapsedTime;
-                _self.nodes.source.start(0, elapsedTime);
-
+                _self.startTime = _self.audioContext.currentTime - startFrom;
+                _self.nodes.source.start(0, startFrom);
 
                 animate();
-                // _self.nodes.source.onended = function () {
-                //     _self.isStarted = false;
-                // };
-                _self.isStarted = true;
+
+                _self.isPaused = false;
             } else {
                 alert('Song is not ready to play');
             }
         }
 
         function resumeMusic() {
-            if (_self.audioContext.state === 'suspended') {
-                _self.audioContext.resume().then(function () {
-                    _self.isPaused = false;
-                    animate();
-                });
-            }
+            _self.isPaused = false;
+            startMusic(Number(_self.trackPosition));
+            animate();
         }
 
         function pauseMusic() {
-            if (_self.audioContext.state === 'running') {
-                _self.audioContext.suspend().then(function () {
-                    cancelAnimationFrame(_self.animationId);
-                    _self.isPaused = true;
-                });
+            if (_self.nodes.source.buffer) {
+                _self.nodes.source.stop();
+                cancelAnimationFrame(_self.animationId);
+                _self.isPaused = true;
             }
         }
 
@@ -281,7 +270,7 @@
                     cancelAnimationFrame(_self.animationId);
                 }
                 _self.trackPosition = 0;
-                _self.isStarted = false;
+                _self.isPaused = true;
             }
         }
 
@@ -303,6 +292,13 @@
 
         function getRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+        function secondsToDuration(totalSeconds) {
+            var minutes = parseInt( totalSeconds / 60 ) % 60;
+            var seconds = totalSeconds % 60;
+
+           return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds  < 10 ? "0" + seconds : seconds);
         }
     }
 

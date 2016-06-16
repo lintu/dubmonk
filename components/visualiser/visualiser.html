@@ -6,31 +6,25 @@
     </div>
     <div id="controls" class="row no-margin">
         <div class="col-sm-4">
-
-            <button type="button" class="btn-primary btn-sm" id="fullscreen-button" ng-click="ctrl.goFullScreen()">FS</button>
-            <button type="button" ng-click="ctrl.startMusic();" ng-hide="ctrl.isStarted">
-                <img src="components/visualiser/img/play.png" height="30" >
-            </button>
             <button type="button" ng-click="ctrl.resumeMusic()" ng-show="ctrl.isPaused">
                 <img src="components/visualiser/img/play.png" height="30" >
             </button>
-            <button type="button"  ng-click="ctrl.pauseMusic()" ng-show="ctrl.isStarted">
+            <button type="button"  ng-click="ctrl.pauseMusic()" ng-show="!ctrl.isPaused">
                 <img src="components/visualiser/img/pause.png" height="30" >
             </button>
             <button type="button"  ng-click="ctrl.stopMusic()">
                 <img src="components/visualiser/img/stop.png" height="30" >
             </button>
-
         </div>
         <div class="col-sm-2">
-            <input type="range" name="gain" min="0" max="10" ng-model="ctrl.gainValue"
+            <input type="range" class="plain-range" name="gain" min="0" max="10" ng-model="ctrl.gainValue"
                    ng-change="ctrl.gainValueChanged()">
         </div>
         <div id="music-player" class="col-sm-6">
-            <input type="range" name="track" min="0" max="{{ctrl.trackDuration}}" ng-model="ctrl.trackPosition"
+            <input type="range" class="plain-range" name="track" min="0" max="{{ctrl.trackDuration}}" ng-model="ctrl.trackPosition"
                    ng-change="ctrl.trackPositionChanged()">
-            <span>Total : {{ctrl.trackDuration / 60}}  mins</span>
-            <span>progress : {{ctrl.trackPosition}}</span>
+            <span style="float:left">{{ctrl.secondsToDuration(ctrl.trackPosition)}}</span>
+            <span style="float:right">{{ctrl.secondsToDuration(ctrl.trackDuration)}}</span>
         </div>
     </div>
 </div>
