@@ -1,7 +1,7 @@
 body {
     font-size: 16px;
     font-family: monospace;
-    background-color: white;
+    background-color: #45cb96;
     height: 100%;
 }
 
@@ -10,6 +10,7 @@ body {
     font-family: 'Proxima Nova',sans-serif;
     width: 100%;
     height: 100vh;
+    background-color: #45cb96;
 }
 
 .no-padding {

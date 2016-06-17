@@ -1,28 +1,57 @@
 <div class="visualiser">
+
     <div class="row no-margin" style="height: 100%;">
         <div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 no-padding" style="height: 100%;">
-            <canvas id="visualiser" style="width: 100%; height: 100%; display: block"></canvas>
+            <canvas id="visualiser" style="width: 100%; height: 100%; display: block" ></canvas>
         </div>
+    </div>
+    <div id="vertical-slider" class="row no-margin">
+        <div class="vertical-slider-item">
+            <canvas></canvas>
+        </div>
+   <div class="vertical-slider-item">
+       <canvas></canvas>
+        </div>
+   <div class="vertical-slider-item">
+       <canvas></canvas>
+        </div>
+   <div class="vertical-slider-item">
+       <canvas></canvas>
+        </div>
+   <div class="vertical-slider-item">
+       <canvas></canvas>
+        </div>
+   <div class="vertical-slider-item">
+       <canvas></canvas>
+        </div>
+        <div class="vertical-slider-item">
+            <canvas></canvas>
+        </div>
+        <div class="vertical-slider-item">
+            <canvas></canvas>
+        </div>
+
     </div>
     <div id="controls" class="row no-margin">
         <div class="col-sm-4">
-            <button type="button" ng-click="ctrl.resumeMusic()" ng-show="ctrl.isPaused">
-                <img src="components/visualiser/img/play.png" height="30" >
-            </button>
-            <button type="button"  ng-click="ctrl.pauseMusic()" ng-show="!ctrl.isPaused">
-                <img src="components/visualiser/img/pause.png" height="30" >
-            </button>
-            <button type="button"  ng-click="ctrl.stopMusic()">
-                <img src="components/visualiser/img/stop.png" height="30" >
-            </button>
+
+            <img ng-show="ctrl.isPaused" src="components/visualiser/img/play.png" ng-click="ctrl.resumeMusic()" height="30" >
+            <img ng-show="!ctrl.isPaused" src="components/visualiser/img/pause.png" ng-click="ctrl.pauseMusic()" height="30" >
+            <img src="components/visualiser/img/stop.png"  ng-click="ctrl.stopMusic()" height="30" >
+            <img src="components/visualiser/img/rock.png"  ng-click="ctrl.showVisualiser = !ctrl.showVisualiser" height="30" >
+
         </div>
-        <div class="col-sm-2">
+        <div class="col-sm-1">
             <input type="range" class="plain-range" name="gain" min="0" max="10" ng-model="ctrl.gainValue"
                    ng-change="ctrl.gainValueChanged()">
         </div>
+        <div class="col-sm-1">
+            <img ng-show="ctrl.isLooped" src="components/visualiser/img/no-loop.png" ng-click="ctrl.isLooped = !ctrl.isLooped" height="30" >
+            <img ng-show="!ctrl.isLooped" src="components/visualiser/img/loop.png" ng-click="ctrl.isLooped = !ctrl.isLooped" height="30" >
+        </div>
         <div id="music-player" class="col-sm-6">
-            <input type="range" class="plain-range" name="track" min="0" max="{{ctrl.trackDuration}}" ng-model="ctrl.trackPosition"
-                   ng-change="ctrl.trackPositionChanged()">
+            <input type="range" class="plain-range" id="playback-range" name="track" min="0" max="{{ctrl.trackDuration}}" ng-model="ctrl.trackPosition"
+                   ng-change="ctrl.trackPositionChanged($event)">
             <span style="float:left">{{ctrl.secondsToDuration(ctrl.trackPosition)}}</span>
             <span style="float:right">{{ctrl.secondsToDuration(ctrl.trackDuration)}}</span>
         </div>

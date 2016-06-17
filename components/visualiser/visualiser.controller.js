@@ -2,9 +2,9 @@
     'use strict';
     angular.module('dubmonk.visualiser').controller('VisualiserController', VisualiserController);
 
-    VisualiserController.$inject = ['$interval', '$scope'];
+    VisualiserController.$inject = ['$timeout', '$scope'];
 
-    function VisualiserController($interval, $scope) {
+    function VisualiserController($timeout, $scope) {
         var _self = this;
 
         //WebAudio
@@ -26,6 +26,9 @@
 
         this.soundBuffer;
         this.isPaused = false;
+        this.isLooped = false;
+        this.showVisualiser = false;
+        
         //Canvas
         this.canvas = null;
         this.canvasCtx = null;
@@ -37,7 +40,7 @@
         this.channel2TimeDomainData = [];
 
         this.canvasBg;
-
+        _self.focus = false;
         //Node data
         this.gainValueChanged = gainValueChanged;
         this.gainValue = 10;
@@ -54,8 +57,9 @@
                 fBtn.msRequestFullScreen();
             }
         };
+
         //Player Controls
-        this.mp3Url = 'components/visualiser/songs/mallu.mp3';
+        this.mp3Url = 'components/visualiser/songs/'+ getRandomInt(1, 10)+'.mp3';
         this.resumeMusic = resumeMusic;
         this.pauseMusic = pauseMusic;
         this.stopMusic = stopMusic;
@@ -83,12 +87,10 @@
 
         function initCanvas() {
             _self.ctx = _self.canvas.getContext('2d');
-
             _self.canvasBg = _self.ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, HEIGHT * (10 / 100), WIDTH / 2, HEIGHT / 2, HEIGHT * (100 / 100));
             _self.canvasBg.addColorStop(0, "#456");
             _self.canvasBg.addColorStop(1, "#200");
-
-            //_self.canvas.style.background = 'radial-gradient(circle, #456, #200)';
+            _self.canvas.style.background = '#45cb96';
         }
 
 
@@ -167,16 +169,17 @@
             //if(!_self.isPaused) {
                 draw();
                 _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
-                $scope.$apply();
+                //$scope.$apply();
             //}
         }
 
         function draw() {
-            _self.ctx.fillStyle = 'white';
+            _self.ctx.fillStyle = '#45cb96';
             _self.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-            drawVolumeBoxes(true);
+            if(_self.showVisualiser) {
+                drawVolumeBoxes(true);
+            }
         }
-
 
         function Chip(x, y, r1, r2, c) {
             this.r1 = r1;
@@ -210,12 +213,12 @@
             var leftVolume = Math.floor(getTrackVolume(_self.channel1FrequencyData));
             var rightVolume = Math.floor(getTrackVolume(_self.channel2FrequencyData));
 
-            for (var x = 0; x <= leftVolume; x += 1) {
-                var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, '#E37B33');
+            for (var x = 0; x <= leftVolume/5; x += 1) {
+                var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, 'black');
                 lChip.draw();
             }
-            for (var y = 0; y <= rightVolume; y += 1) {
-                var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, '#E37B33');
+            for (var y = 0; y <= rightVolume/5; y += 1) {
+                var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, 'black');
                 rChip.draw();
             }
         }
@@ -231,6 +234,7 @@
 
         function startMusic(startFrom) {
             if (_self.nodes.source) {
+
                 if (_self.nodes.source.buffer) {
                     _self.nodes.source.stop();
                 }
@@ -240,6 +244,12 @@
                 _self.nodes.source.connect(_self.nodes.splitter);
                 _self.startTime = _self.audioContext.currentTime - startFrom;
                 _self.nodes.source.start(0, startFrom);
+                _self.nodes.source.loop = _self.isLooped;
+
+                // _self.nodes.source.onended = function () {
+                //
+                //     _self.trackPosition = 0;
+                // };
 
                 animate();
 
