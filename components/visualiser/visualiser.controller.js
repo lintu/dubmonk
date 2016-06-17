@@ -32,7 +32,7 @@
         //Canvas
         this.canvas = null;
         this.canvasCtx = null;
-        this.animationId;
+        this.animationId = 1;
 
         this.channel1FrequencyData = [];
         this.channel2FrequencyData = [];
@@ -154,23 +154,42 @@
                 _self.channel2TimeDomainData = new Uint8Array(_self.nodes.analyser2.frequencyBinCount);
 
                 $scope.$apply();
+                
                 startMusic(0);
             });
         }
 
         function animate() {
-            _self.animationId =  requestAnimationFrame(animate);
+            if(_self.animationId) {
+                _self.animationId = requestAnimationFrame(animate);
 
-            _self.nodes.analyser1.getByteFrequencyData(_self.channel1FrequencyData);
-            _self.nodes.analyser2.getByteFrequencyData(_self.channel2FrequencyData);
+                _self.nodes.analyser1.getByteFrequencyData(_self.channel1FrequencyData);
+                _self.nodes.analyser2.getByteFrequencyData(_self.channel2FrequencyData);
 
-            _self.nodes.analyser1.getByteTimeDomainData(_self.channel1TimeDomainData);
-            _self.nodes.analyser2.getByteTimeDomainData(_self.channel2TimeDomainData);
-            //if(!_self.isPaused) {
-                draw();
-                _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
-                //$scope.$apply();
-            //}
+                _self.nodes.analyser1.getByteTimeDomainData(_self.channel1TimeDomainData);
+                _self.nodes.analyser2.getByteTimeDomainData(_self.channel2TimeDomainData);
+
+                if (_self.trackPosition >= _self.trackDuration) {
+                    if (_self.isLooped) {
+                        stopMusic();
+                        startMusic(0);
+                    } else {
+                        //_self.startTime = _self.audioContext.currentTime;
+                        stopMusic();
+                    }
+                    if (!$scope.$$phase) {
+                        $scope.$apply();
+                    }
+                } else {
+                    draw();
+                    if (!$scope.$$phase) {
+                        _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
+                        $scope.$apply();
+                    }
+                }
+
+
+            }
         }
 
         function draw() {
@@ -214,11 +233,11 @@
             var rightVolume = Math.floor(getTrackVolume(_self.channel2FrequencyData));
 
             for (var x = 0; x <= leftVolume/5; x += 1) {
-                var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, 'black');
+                var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, '#4AFF6B');
                 lChip.draw();
             }
             for (var y = 0; y <= rightVolume/5; y += 1) {
-                var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, 'black');
+                var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, '#5689BD');
                 rChip.draw();
             }
         }
@@ -227,6 +246,7 @@
             if(_self.isPaused) {
                 pauseMusic();
                 cancelAnimationFrame(_self.animationId);
+                _self.animationId = undefined;
             } else {
                 startMusic(Number(_self.trackPosition));
             }
@@ -244,13 +264,8 @@
                 _self.nodes.source.connect(_self.nodes.splitter);
                 _self.startTime = _self.audioContext.currentTime - startFrom;
                 _self.nodes.source.start(0, startFrom);
-                _self.nodes.source.loop = _self.isLooped;
-
-                // _self.nodes.source.onended = function () {
-                //
-                //     _self.trackPosition = 0;
-                // };
-
+                _self.nodes.source.loop = false;
+                _self.animationId = 1;
                 animate();
 
                 _self.isPaused = false;
@@ -262,22 +277,26 @@
         function resumeMusic() {
             _self.isPaused = false;
             startMusic(Number(_self.trackPosition));
+            _self.animationId = 1;
             animate();
         }
 
         function pauseMusic() {
             if (_self.nodes.source.buffer) {
-                _self.nodes.source.stop();
-                cancelAnimationFrame(_self.animationId);
-                _self.isPaused = true;
+                   _self.nodes.source.stop();
+                window.cancelAnimationFrame(_self.animationId);
+                _self.animationId = undefined;
+
             }
+            _self.isPaused = true;
         }
 
         function stopMusic() {
             if (_self.nodes.source) {
                 if (_self.nodes.source.buffer) {
                     _self.nodes.source.stop();
-                    cancelAnimationFrame(_self.animationId);
+                    window.cancelAnimationFrame(_self.animationId);
+                    _self.animationId = undefined;
                 }
                 _self.trackPosition = 0;
                 _self.isPaused = true;
