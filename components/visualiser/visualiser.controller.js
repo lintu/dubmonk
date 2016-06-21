@@ -59,38 +59,81 @@
         };
 
         //Player Controls
-        this.mp3Url = 'components/visualiser/songs/'+ getRandomInt(1, 10)+'.mp3';
-        this.resumeMusic = resumeMusic;
-        this.pauseMusic = pauseMusic;
-        this.stopMusic = stopMusic;
-        this.startMusic = startMusic;
+        this.resume = resume;
+        this.pause = pause;
+        this.stop = stop;
+        this.start = start;
+        this.next = next;
+        this.previous = previous;
+
         this.trackPositionChanged = trackPositionChanged;
         this.trackDuration = '0.00';
         this.trackPosition = 0;
         this.secondsToDuration = secondsToDuration;
-
+this.vManager;
+        this.smallCanvasList = [];
         init();
+
+        function VisualisationManager() {
+
+            var mainCanvas = document.getElementById('visualiser');
+
+            mainCanvas.width = WIDTH;
+            mainCanvas.height = HEIGHT;
+            mainCanvas.style.backgroundColor = 'white';
+
+            var mainContext = mainCanvas.getContext('2d');
+
+
+            this.canvasArray = []; //type canvas
+            this.drawFunctions = [drawVolumeBoxes];
+            this.mainItem = 1;
+            this.drawAll = function() {
+
+            };
+            this.draw = function() {
+                for(var i=0; i< this.drawFunctions.length; i++) {
+                    var canvas = document.createElement('canvas');
+                    var context = canvas.getContext('2d');
+                    this.drawFunctions[i](context);
+                }
+
+                mainContext.fillStyle = '#45cb96';
+                mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+                if(_self.showVisualiser) {
+                    drawVolumeBoxes(mainContext);
+                }
+            };
+            this.drawMain = function(itemId) {
+
+            };
+            function drawVolumeBoxes(context) {
+                var leftVolume = Math.floor(getTrackVolume(_self.channel1FrequencyData));
+                var rightVolume = Math.floor(getTrackVolume(_self.channel2FrequencyData));
+
+                for (var x = 0; x <= leftVolume/5; x += 1) {
+                    var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, '#4AFF6B');
+                    lChip.draw(context);
+                }
+                for (var y = 0; y <= rightVolume/5; y += 1) {
+                    var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, '#5689BD');
+                    rChip.draw(context);
+                }
+            }
+        }
+
         function init() {
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-            _self.canvas = document.getElementById('visualiser');
 
-            _self.canvas.width = WIDTH;
-            _self.canvas.height = HEIGHT;
-            _self.canvas.style.backgroundColor = 'white';
-            _self.ctx = _self.canvas.getContext('2d');
-
-            initCanvas();
+            _self.vManager = new VisualisationManager();
             setupNodes();
-            fetchSound();
+            fetchSound(getNextTrackUrl());
         }
 
-        function initCanvas() {
-            _self.ctx = _self.canvas.getContext('2d');
-            _self.canvasBg = _self.ctx.createRadialGradient(WIDTH / 2, HEIGHT / 2, HEIGHT * (10 / 100), WIDTH / 2, HEIGHT / 2, HEIGHT * (100 / 100));
-            _self.canvasBg.addColorStop(0, "#456");
-            _self.canvasBg.addColorStop(1, "#200");
-            _self.canvas.style.background = '#45cb96';
+
+        function getNextTrackUrl() {
+            return 'components/visualiser/songs/'+ getRandomInt(1, 9)+'.mp3';
         }
 
 
@@ -130,9 +173,9 @@
             _self.nodes.gain.connect(_self.audioContext.destination, 0, 0);
         }
 
-        function fetchSound() {
+        function fetchSound(url) {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', _self.mp3Url, true);
+            xhr.open('GET', url, true);
             xhr.responseType = 'arraybuffer';
             xhr.onload = function () {
                 processArrayBuffer(xhr.response);
@@ -155,13 +198,13 @@
 
                 $scope.$apply();
                 
-                startMusic(0);
+                start(0);
             });
         }
 
-        function animate() {
+        function threadFunction() {
             if(_self.animationId) {
-                _self.animationId = requestAnimationFrame(animate);
+                _self.animationId = requestAnimationFrame(threadFunction);
 
                 _self.nodes.analyser1.getByteFrequencyData(_self.channel1FrequencyData);
                 _self.nodes.analyser2.getByteFrequencyData(_self.channel2FrequencyData);
@@ -171,17 +214,21 @@
 
                 if (_self.trackPosition >= _self.trackDuration) {
                     if (_self.isLooped) {
-                        stopMusic();
-                        startMusic(0);
+                        stop();
+                        start(0);
                     } else {
                         //_self.startTime = _self.audioContext.currentTime;
-                        stopMusic();
+                        stop();
+                        fetchSound(getNextTrackUrl());
+
                     }
                     if (!$scope.$$phase) {
                         $scope.$apply();
                     }
                 } else {
-                    draw();
+                    _self.vManager.draw();
+
+
                     if (!$scope.$$phase) {
                         _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
                         $scope.$apply();
@@ -193,11 +240,7 @@
         }
 
         function draw() {
-            _self.ctx.fillStyle = '#45cb96';
-            _self.ctx.fillRect(0, 0, WIDTH, HEIGHT);
-            if(_self.showVisualiser) {
-                drawVolumeBoxes(true);
-            }
+
         }
 
         function Chip(x, y, r1, r2, c) {
@@ -209,50 +252,38 @@
             this.color = c;
             this.strokeColor = '#7F8283';
 
-            this.draw = function () {
-                _self.ctx.beginPath();
-                _self.ctx.arc(x, y, this.r2, 0, 2 * Math.PI, false);
-                _self.ctx.fillStyle = this.color;
-                _self.ctx.fill();
+            this.draw = function (mainContext) {
+                mainContext.beginPath();
+                mainContext.arc(x, y, this.r2, 0, 2 * Math.PI, false);
+                mainContext.fillStyle = this.color;
+                mainContext.fill();
 
-                _self.ctx.beginPath();
-                _self.ctx.arc(x, y, this.r1, 0, 2 * Math.PI, false);
-                _self.ctx.lineWidth = this.r2 / 7;
-                _self.ctx.strokeStyle = this.strokeColor;
-                _self.ctx.stroke();
+                mainContext.beginPath();
+                mainContext.arc(x, y, this.r1, 0, 2 * Math.PI, false);
+                mainContext.lineWidth = this.r2 / 7;
+                mainContext.strokeStyle = this.strokeColor;
+                mainContext.stroke();
 
-                _self.ctx.beginPath();
-                _self.ctx.arc(x, y, 5, 0, 2 * Math.PI, false);
-                _self.ctx.fillStyle = 'grey';
-                _self.ctx.fill();
+                mainContext.beginPath();
+                mainContext.arc(x, y, 5, 0, 2 * Math.PI, false);
+                mainContext.fillStyle = 'grey';
+                mainContext.fill();
             }
         }
 
-        function drawVolumeBoxes(channeled) {
-            var leftVolume = Math.floor(getTrackVolume(_self.channel1FrequencyData));
-            var rightVolume = Math.floor(getTrackVolume(_self.channel2FrequencyData));
 
-            for (var x = 0; x <= leftVolume/5; x += 1) {
-                var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, '#4AFF6B');
-                lChip.draw();
-            }
-            for (var y = 0; y <= rightVolume/5; y += 1) {
-                var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, '#5689BD');
-                rChip.draw();
-            }
-        }
 
         function trackPositionChanged() {
             if(_self.isPaused) {
-                pauseMusic();
+                pause();
                 cancelAnimationFrame(_self.animationId);
                 _self.animationId = undefined;
             } else {
-                startMusic(Number(_self.trackPosition));
+                start(Number(_self.trackPosition));
             }
         }
 
-        function startMusic(startFrom) {
+        function start(startFrom) {
             if (_self.nodes.source) {
 
                 if (_self.nodes.source.buffer) {
@@ -266,7 +297,7 @@
                 _self.nodes.source.start(0, startFrom);
                 _self.nodes.source.loop = false;
                 _self.animationId = 1;
-                animate();
+                threadFunction();
 
                 _self.isPaused = false;
             } else {
@@ -274,14 +305,14 @@
             }
         }
 
-        function resumeMusic() {
+        function resume() {
             _self.isPaused = false;
-            startMusic(Number(_self.trackPosition));
+            start(Number(_self.trackPosition));
             _self.animationId = 1;
-            animate();
+            threadFunction();
         }
 
-        function pauseMusic() {
+        function pause() {
             if (_self.nodes.source.buffer) {
                    _self.nodes.source.stop();
                 window.cancelAnimationFrame(_self.animationId);
@@ -290,8 +321,13 @@
             }
             _self.isPaused = true;
         }
-
-        function stopMusic() {
+function previous() {
+    fetchSound(getNextTrackUrl());
+}
+        function next() {
+    fetchSound(getNextTrackUrl());
+}
+        function stop() {
             if (_self.nodes.source) {
                 if (_self.nodes.source.buffer) {
                     _self.nodes.source.stop();
