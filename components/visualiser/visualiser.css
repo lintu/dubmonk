@@ -13,17 +13,16 @@
     height: 75%;
     padding: 10px 0px;
     top:20px;
-    border: 1px solid red;
     overflow-y: scroll;
 }
 
 .vertical-slider-item {
     height: 25%;
     padding: 10px 10px;
-    border: 1px solid red;
+
 }
 .vertical-slider-item canvas {
-    background-color: red;
+
     height: 100%;
     width: 100%;
 }

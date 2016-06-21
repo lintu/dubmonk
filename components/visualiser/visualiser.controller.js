@@ -28,7 +28,7 @@
         this.isPaused = false;
         this.isLooped = false;
         this.showVisualiser = false;
-        
+
         //Canvas
         this.canvas = null;
         this.canvasCtx = null;
@@ -70,70 +70,172 @@
         this.trackDuration = '0.00';
         this.trackPosition = 0;
         this.secondsToDuration = secondsToDuration;
-this.vManager;
+        this.vManager;
         this.smallCanvasList = [];
+        this.mainVisualiserIndex = 1;
         init();
 
-        function VisualisationManager() {
+        function VisualisationManager(smallCanvasList, mainVisualisationIndex) {
+
 
             var mainCanvas = document.getElementById('visualiser');
 
+            var smCanvasArray = [],
+                smCanvasCtxArray = [];
             mainCanvas.width = WIDTH;
             mainCanvas.height = HEIGHT;
-            mainCanvas.style.backgroundColor = 'white';
+            mainCanvas.style.backgroundColor = '45cb96';
 
             var mainContext = mainCanvas.getContext('2d');
+            this.drawFunctions = [drawVolumeChips, drawVolumeBooms, drawFrequencyCircle, drawByteDomainData, drawFrequencyBar];
 
+            smallCanvasList.push(1);
+            smallCanvasList.push(2);
+            smallCanvasList.push(3);
+            smallCanvasList.push(4);
+            smallCanvasList.push(5);
 
-            this.canvasArray = []; //type canvas
-            this.drawFunctions = [drawVolumeBoxes];
-            this.mainItem = 1;
-            this.drawAll = function() {
+            $timeout(function () { //to call a apply for smallCanvasList
+                smCanvasArray = document.getElementsByClassName('sm-canvas');
 
-            };
-            this.draw = function() {
-                for(var i=0; i< this.drawFunctions.length; i++) {
-                    var canvas = document.createElement('canvas');
-                    var context = canvas.getContext('2d');
-                    this.drawFunctions[i](context);
+                for (var j = 0; j < smCanvasArray.length; j++) {
+                    smCanvasCtxArray.push(smCanvasArray[j].getContext('2d'));
+                    smCanvasArray[j].height = smCanvasArray[j].clientHeight; //TODO required check y
+                    smCanvasArray[j].width = smCanvasArray[j].clientWidth;
+                    smCanvasArray[j].style.backgroundColor = '#45cb96';
+                }
+            }, 0);
+
+            this.draw = function () {
+                for (var i = 0; i < this.drawFunctions.length; i++) {
+                    smCanvasCtxArray[i].fillStyle = '#45cb96';
+                    smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                    this.drawFunctions[i](smCanvasCtxArray[i], smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
                 }
 
                 mainContext.fillStyle = '#45cb96';
                 mainContext.fillRect(0, 0, WIDTH, HEIGHT);
-                if(_self.showVisualiser) {
-                    drawVolumeBoxes(mainContext);
-                }
-            };
-            this.drawMain = function(itemId) {
 
+                this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
             };
-            function drawVolumeBoxes(context) {
+
+
+            function drawVolumeBooms(context, width, height) {
+                context.beginPath();
+                context.arc(width * (1/3), height/2, getTrackVolume(_self.channel1FrequencyData), 0, 2 * Math.PI, false);
+
+                context.arc(width * (2/3), height/2, getTrackVolume(_self.channel2FrequencyData), 0, 2 * Math.PI, false);
+
+                context.fillStyle = 'red';
+                context.fill();
+
+            }
+
+            function drawFrequencyCircle(context, width, height) {
+
+                var skipInterval = Math.floor(_self.channel1FrequencyData.length / 360);
+                for (var i = 0; i < _self.channel1FrequencyData.length; i++) {
+                    var height1 = (height) * (_self.channel1FrequencyData[i] / 256);
+
+                    var height2 = (height) * (_self.channel2FrequencyData[i] / 256);
+
+                    context.fillStyle = 'hsl(342,100%,' + getRandomInt(1, 50) + '%';
+
+                    if (i % skipInterval === 0 && height1 > 0) {
+                        context.beginPath();
+                        context.strokeStyle = 'white';
+                        context.moveTo(width * (1/3), height/2);
+                        var lineToPoint1 = getPointOnCircle(width * (1/3), height/2, height1, i * 0.0174533);
+                        context.lineTo(lineToPoint1.x, lineToPoint1.y);
+                        context.stroke();
+                    }
+
+
+                    if (i % skipInterval === 0 && height2 > 0) {
+                        context.beginPath();
+                        context.strokeStyle = 'white';
+                        context.moveTo(width *(2/3), height/2);
+                        var lineToPoint2 = getPointOnCircle(width * (1/3), height/2, height2, i * 0.0174533);
+                        context.lineTo(lineToPoint2.x, lineToPoint2.y);
+                        context.stroke();
+                    }
+                }
+            }
+
+            function drawFrequencyBar(context, width, height) {
+
+                context.beginPath();
+                context.fillStyle = 'blue';
+                var x1 = 0,
+                    x2 = 0,
+                    sliceWidth = width / _self.channel1FrequencyData.length;
+                for (var i = 0; i < _self.channel1FrequencyData.length; i++) {
+                    var height1 = (height) * (_self.channel1FrequencyData[i] / 256);
+                    var height2 = (height - 400) * (_self.channel2FrequencyData[i] / 256);
+                    var y1 = (height + 50) - height1 - 1;
+                    var y2 = (height + 20) - height2 - 1;
+                    context.fillRect(x1, y1, sliceWidth, height1);
+                    //context.fillRect(x2, y2, sliceWidth, height2);
+
+                    x1 += sliceWidth;
+                    x2 += sliceWidth;
+                }
+                context.fillStyle = 'rgb(234, 91, 77)';
+                context.fill();
+            }
+            
+            function drawVolumeChips(context, width, height) {
                 var leftVolume = Math.floor(getTrackVolume(_self.channel1FrequencyData));
                 var rightVolume = Math.floor(getTrackVolume(_self.channel2FrequencyData));
 
-                for (var x = 0; x <= leftVolume/5; x += 1) {
-                    var lChip = new Chip(getRandomInt(10, WIDTH/2), getRandomInt(10, HEIGHT), 20, leftVolume / 3, '#4AFF6B');
+                for (var x = 0; x <= leftVolume / 5; x += 1) {
+                    var lChip = new Chip(getRandomInt(10, width / 2), getRandomInt(10, height), 20, leftVolume / 3, '#4AFF6B');
                     lChip.draw(context);
                 }
-                for (var y = 0; y <= rightVolume/5; y += 1) {
-                    var rChip = new Chip(getRandomInt(WIDTH/2, WIDTH - 10), getRandomInt(10, HEIGHT), 20, rightVolume / 3, '#5689BD');
+                for (var y = 0; y <= rightVolume / 5; y += 1) {
+                    var rChip = new Chip(getRandomInt(width / 2, width - 10), getRandomInt(10, height), 20, rightVolume / 3, '#5689BD');
                     rChip.draw(context);
                 }
+            }
+        }
+
+        function drawByteDomainData(context, width, height) {
+            //entire wave
+            context.beginPath();
+            context.fillStyle = 'red';
+
+            var x1 = 0,
+                x2 = 0,
+                sliceWidth = width / _self.channel1TimeDomainData.length;
+            for (var i = 0; i < _self.channel1TimeDomainData.length; i++) {
+                var timeData1 = _self.channel1TimeDomainData[i] / 256;
+                var y1 = (height + 10) - (height * timeData1) - 1;
+                context.fillStyle = 'hsl(' + getRandomInt(1, 100) + ', 100%, 50%)';
+                context.fillRect(x1, y1, sliceWidth, 1);
+                context.fill();
+                x1 += sliceWidth;
+            }
+
+            for (var j = 0; j < _self.channel1TimeDomainData.length; j++) {
+                var timeData2 = _self.channel1TimeDomainData[j] / 256;
+                var y2 = (height - 10) - (height * timeData2) - 1;
+                context.fillStyle = 'hsl(' + getRandomInt(1, 100) + '), 100%, ' + getRandomInt(1, 100) + '%';
+                context.fillRect(x2, y2, sliceWidth, 1);
+                context.fill();
+                x2 += sliceWidth;
             }
         }
 
         function init() {
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-
-            _self.vManager = new VisualisationManager();
+            _self.vManager = new VisualisationManager(_self.smallCanvasList, _self.mainVisualiserIndex);
             setupNodes();
             fetchSound(getNextTrackUrl());
         }
 
-
         function getNextTrackUrl() {
-            return 'components/visualiser/songs/'+ getRandomInt(1, 9)+'.mp3';
+            return 'components/visualiser/songs/' + getRandomInt(1, 9) + '.mp3';
         }
 
 
@@ -197,13 +299,13 @@ this.vManager;
                 _self.channel2TimeDomainData = new Uint8Array(_self.nodes.analyser2.frequencyBinCount);
 
                 $scope.$apply();
-                
+
                 start(0);
             });
         }
 
         function threadFunction() {
-            if(_self.animationId) {
+            if (_self.animationId) {
                 _self.animationId = requestAnimationFrame(threadFunction);
 
                 _self.nodes.analyser1.getByteFrequencyData(_self.channel1FrequencyData);
@@ -217,30 +319,23 @@ this.vManager;
                         stop();
                         start(0);
                     } else {
-                        //_self.startTime = _self.audioContext.currentTime;
                         stop();
                         fetchSound(getNextTrackUrl());
-
                     }
                     if (!$scope.$$phase) {
                         $scope.$apply();
                     }
                 } else {
-                    _self.vManager.draw();
-
-
+                    if (_self.showVisualiser) {
+                        _self.vManager.draw();
+                    }
                     if (!$scope.$$phase) {
                         _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
                         $scope.$apply();
                     }
                 }
 
-
             }
-        }
-
-        function draw() {
-
         }
 
         function Chip(x, y, r1, r2, c) {
@@ -252,29 +347,28 @@ this.vManager;
             this.color = c;
             this.strokeColor = '#7F8283';
 
-            this.draw = function (mainContext) {
-                mainContext.beginPath();
-                mainContext.arc(x, y, this.r2, 0, 2 * Math.PI, false);
-                mainContext.fillStyle = this.color;
-                mainContext.fill();
+            this.draw = function (ctx) {
+                ctx.beginPath();
+                ctx.arc(x, y, this.r2, 0, 2 * Math.PI, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
 
-                mainContext.beginPath();
-                mainContext.arc(x, y, this.r1, 0, 2 * Math.PI, false);
-                mainContext.lineWidth = this.r2 / 7;
-                mainContext.strokeStyle = this.strokeColor;
-                mainContext.stroke();
+                ctx.beginPath();
+                ctx.arc(x, y, this.r1, 0, 2 * Math.PI, false);
+                ctx.lineWidth = this.r2 / 7;
+                ctx.strokeStyle = this.strokeColor;
+                ctx.stroke();
 
-                mainContext.beginPath();
-                mainContext.arc(x, y, 5, 0, 2 * Math.PI, false);
-                mainContext.fillStyle = 'grey';
-                mainContext.fill();
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, 2 * Math.PI, false);
+                ctx.fillStyle = 'grey';
+                ctx.fill();
             }
         }
 
 
-
         function trackPositionChanged() {
-            if(_self.isPaused) {
+            if (_self.isPaused) {
                 pause();
                 cancelAnimationFrame(_self.animationId);
                 _self.animationId = undefined;
@@ -314,19 +408,22 @@ this.vManager;
 
         function pause() {
             if (_self.nodes.source.buffer) {
-                   _self.nodes.source.stop();
+                _self.nodes.source.stop();
                 window.cancelAnimationFrame(_self.animationId);
                 _self.animationId = undefined;
 
             }
             _self.isPaused = true;
         }
-function previous() {
-    fetchSound(getNextTrackUrl());
-}
+
+        function previous() {
+            fetchSound(getNextTrackUrl());
+        }
+
         function next() {
-    fetchSound(getNextTrackUrl());
-}
+            fetchSound(getNextTrackUrl());
+        }
+
         function stop() {
             if (_self.nodes.source) {
                 if (_self.nodes.source.buffer) {
@@ -360,10 +457,16 @@ function previous() {
         }
 
         function secondsToDuration(totalSeconds) {
-            var minutes = parseInt( totalSeconds / 60 ) % 60;
+            var minutes = parseInt(totalSeconds / 60) % 60;
             var seconds = totalSeconds % 60;
 
-           return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds  < 10 ? "0" + seconds : seconds);
+            return (minutes < 10 ? "0" + minutes : minutes) + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        }
+        function getPointOnCircle(cx, cy, radius, angle) {
+            return {
+                x: cx + radius * Math.cos(angle),
+                y: cy + radius * Math.sin(angle)
+            }
         }
     }
 

@@ -6,8 +6,8 @@
         </div>
     </div>
     <div id="vertical-slider" class="row no-margin">
-        <div class="vertical-slider-item" ng-repeat="smCanvas in ctrl.smallCanvasList">
-
+        <div class="vertical-slider-item" ng-repeat="smCanvas in ctrl.smallCanvasList" ng-click="ctrl.mainVisualiserIndex = $index">
+            <canvas class="sm-canvas" style="width: 100%; height: 100%; display: block"></canvas>
         </div>
     </div>
     <div id="controls" class="row no-margin">
