@@ -84,7 +84,7 @@
                 smCanvasCtxArray = [];
             mainCanvas.width = WIDTH;
             mainCanvas.height = HEIGHT;
-            mainCanvas.style.backgroundColor = '45cb96';
+            mainCanvas.style.backgroundColor = '354147';
 
             var mainContext = mainCanvas.getContext('2d');
             this.drawFunctions = [drawVolumeChips, drawVolumeBooms, drawFrequencyCircle, drawByteDomainData, drawFrequencyBar];
@@ -102,18 +102,18 @@
                     smCanvasCtxArray.push(smCanvasArray[j].getContext('2d'));
                     smCanvasArray[j].height = smCanvasArray[j].clientHeight; //TODO required check y
                     smCanvasArray[j].width = smCanvasArray[j].clientWidth;
-                    smCanvasArray[j].style.backgroundColor = '#45cb96';
+                    smCanvasArray[j].style.backgroundColor = '#354147';
                 }
             }, 0);
 
             this.draw = function () {
                 for (var i = 0; i < this.drawFunctions.length; i++) {
-                    smCanvasCtxArray[i].fillStyle = '#45cb96';
+                    smCanvasCtxArray[i].fillStyle = '#354147';
                     smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
                     this.drawFunctions[i](smCanvasCtxArray[i], smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
                 }
 
-                mainContext.fillStyle = '#45cb96';
+                mainContext.fillStyle = '#354147';
                 mainContext.fillRect(0, 0, WIDTH, HEIGHT);
 
                 this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
@@ -139,26 +139,24 @@
 
                     var height2 = (height) * (_self.channel2FrequencyData[i] / 256);
 
-                    context.fillStyle = 'hsl(342,100%,' + getRandomInt(1, 50) + '%';
-
                     if (i % skipInterval === 0 && height1 > 0) {
                         context.beginPath();
                         context.strokeStyle = 'white';
-                        context.moveTo(width * (1/3), height/2);
+                        context.moveTo(width * (1/4), height/2);
                         var lineToPoint1 = getPointOnCircle(width * (1/3), height/2, height1, i * 0.0174533);
                         context.lineTo(lineToPoint1.x, lineToPoint1.y);
                         context.stroke();
                     }
 
 
-                    if (i % skipInterval === 0 && height2 > 0) {
-                        context.beginPath();
-                        context.strokeStyle = 'white';
-                        context.moveTo(width *(2/3), height/2);
-                        var lineToPoint2 = getPointOnCircle(width * (1/3), height/2, height2, i * 0.0174533);
-                        context.lineTo(lineToPoint2.x, lineToPoint2.y);
-                        context.stroke();
-                    }
+                    // if (i % skipInterval === 0 && height2 > 0) {
+                    //     context.beginPath();
+                    //     context.strokeStyle = 'white';
+                    //     context.moveTo(width *(2/3), height/2);
+                    //     var lineToPoint2 = getPointOnCircle(width * (1/3), height/2, height2, i * 0.0174533);
+                    //     context.lineTo(lineToPoint2.x, lineToPoint2.y);
+                    //     context.stroke();
+                    // }
                 }
             }
 
