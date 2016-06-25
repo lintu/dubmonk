@@ -2,9 +2,9 @@
     'use strict';
     angular.module('dubmonk.visualiser').controller('VisualiserController', VisualiserController);
 
-    VisualiserController.$inject = ['$timeout', '$scope'];
+    VisualiserController.$inject = ['$timeout', '$scope', '$http'];
 
-    function VisualiserController($timeout, $scope) {
+    function VisualiserController($timeout, $scope, $http) {
         var _self = this;
 
         //WebAudio
@@ -44,6 +44,7 @@
         //Node data
         this.gainValueChanged = gainValueChanged;
         this.gainValue = 10;
+        this.uploadFile;
 
         this.goFullScreen = function () {
             var fBtn = document.getElementById('visualiser');
@@ -65,6 +66,7 @@
         this.start = start;
         this.next = next;
         this.previous = previous;
+        this.upload = upload;
 
         this.trackPositionChanged = trackPositionChanged;
         this.trackDuration = '0.00';
@@ -434,9 +436,31 @@
             }
         }
 
+        function upload() {
+            var file = document.getElementById('upload-file').files[0];
+
+            if(file) {
+                if(file.type === 'audio/mp3') {
+                    _self.uploadFile = file;
+                    var fd = new FormData();
+                    fd.append('file', _self.uploadFile);
+                    $http.post('/upload', fd, {
+
+                    }).then(function (response) {
+                        debugger;
+                    }).catch(function (error) {
+                        debugger;
+                    })
+                } else {
+                    alert('haha. only mp3 files');
+                }
+            }
+        }
+
         function gainValueChanged() {
             if (_self.nodes.gain) {
-                _self.nodes.gain.gain.value = _self.gainValue * (1 / 10);
+                _self.nodes.gain.gain.exponentialRampToValueAtTime(_self.gainValue * (1 / 10), _self.audioContext.currentTime + 0.2);
+                //_self.nodes.gain.gain.value = _self.gainValue * (1 / 10);
             }
         }
 

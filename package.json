@@ -18,7 +18,8 @@
   "homepage": "https://bitbucket.org/_lintu/supertramp#readme",
   "dependencies": {
     "express": "^4.13.3",
-    "mongodb": "^2.0.47"
+    "mongodb": "^2.0.47",
+    "multer": "latest"
   },
   "devDependencies": {
   }

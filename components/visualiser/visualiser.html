@@ -22,11 +22,12 @@
                              ng-click="ctrl.showVisualiser = !ctrl.showVisualiser" height="50"></a>
             <a href="#"><img src="components/visualiser/img/previous.png" ng-click="ctrl.previous()" height="50"> </a>
             <a href="#"><img src="components/visualiser/img/next.png" ng-click="ctrl.next()" height="50"> </a>
-
         </div>
         <div class="col-sm-1">
             <input type="range" class="plain-range" name="gain" min="0" max="10" height="50" ng-model="ctrl.gainValue"
                    ng-change="ctrl.gainValueChanged()">
+            <input type="file" value="Upload" id="upload-file" name="file"/>
+            <a href="#"><img src="components/visualiser/img/upload.png" ng-click="ctrl.upload()" height="50"></a>
         </div>
         <div class="col-sm-1">
             <a href="#"><img ng-show="ctrl.isLooped" src="components/visualiser/img/no-loop.png"
