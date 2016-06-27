@@ -44,8 +44,8 @@
         //Node data
         this.gainValueChanged = gainValueChanged;
         this.gainValue = 10;
-        this.uploadFile;
 
+        
         this.goFullScreen = function () {
             var fBtn = document.getElementById('visualiser');
             if (fBtn.requestFullscreen) {
@@ -67,7 +67,10 @@
         this.next = next;
         this.previous = previous;
         this.upload = upload;
+        this.playFromList = playFromList;
 
+        this.nowPlayingIndex = 0;
+        
         this.trackPositionChanged = trackPositionChanged;
         this.trackDuration = '0.00';
         this.trackPosition = 0;
@@ -228,14 +231,28 @@
 
         function init() {
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
             _self.vManager = new VisualisationManager(_self.smallCanvasList, _self.mainVisualiserIndex);
             setupNodes();
-            fetchSound(getNextTrackUrl());
+
+            getSongList();
+
+            //fetchSound(getNextTrackUrl());
+        }
+        
+        function getSongList() {
+            var myWorker = new Worker('components/visualiser/worker.js');
+            myWorker.onmessage = function (songList) {
+                _self.songList = JSON.parse(songList.data);
+                if (!$scope.$$phase) {
+                    $scope.$digest();
+                }
+                _self.songList[0].isPlaying = true;
+                fetchSound(_self.songList[0].url);
+            }
         }
 
         function getNextTrackUrl() {
-            return 'components/visualiser/songs/' + getRandomInt(1, 9) + '.mp3';
+            return _self.songList[_self.nowPlayingIndex].url;
         }
 
 
@@ -281,6 +298,18 @@
             xhr.responseType = 'arraybuffer';
             xhr.onload = function () {
                 processArrayBuffer(xhr.response);
+
+                // var detailsXhr = new XMLHttpRequest();
+                // detailsXhr.open('GET', '/getSongDetails?url=' + url, true);
+                // //xhr.responseType = 'application/json';
+                // detailsXhr.onload = function () {
+                //
+                //     _self.songDetails = JSON.parse(detailsXhr.response);
+                //     if (!$scope.$$phase) {
+                //         $scope.$digest();
+                //     }
+                // };
+                // detailsXhr.send();
             };
             xhr.send();
         }
@@ -297,9 +326,9 @@
 
                 _self.channel1TimeDomainData = new Uint8Array(_self.nodes.analyser1.frequencyBinCount);
                 _self.channel2TimeDomainData = new Uint8Array(_self.nodes.analyser2.frequencyBinCount);
-
-                $scope.$apply();
-
+                if (!$scope.$$phase) {
+                    $scope.$digest();
+                }
                 start(0);
             });
         }
@@ -320,10 +349,11 @@
                         start(0);
                     } else {
                         stop();
+                        _self.nowPlayingIndex++;
                         fetchSound(getNextTrackUrl());
                     }
                     if (!$scope.$$phase) {
-                        $scope.$apply();
+                        $scope.$digest();
                     }
                 } else {
                     if (_self.showVisualiser) {
@@ -331,7 +361,7 @@
                     }
                     if (!$scope.$$phase) {
                         _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);
-                        $scope.$apply();
+                        $scope.$digest();
                     }
                 }
 
@@ -417,10 +447,12 @@
         }
 
         function previous() {
+            _self.nowPlayingIndex --;
             fetchSound(getNextTrackUrl());
         }
 
         function next() {
+            _self.nowPlayingIndex ++;
             fetchSound(getNextTrackUrl());
         }
 
@@ -436,24 +468,46 @@
             }
         }
 
+        function playFromList(index) {
+            //NG-CLASS not getting updated as soon as clicked
+
+            _self.nowPlayingIndex = index;
+            $timeout(function(){
+                fetchSound(getNextTrackUrl());
+            }, 0);
+        }
+
         function upload() {
             var file = document.getElementById('upload-file').files[0];
 
             if(file) {
-                if(file.type === 'audio/mp3') {
-                    _self.uploadFile = file;
-                    var fd = new FormData();
-                    fd.append('file', _self.uploadFile);
-                    $http.post('/upload', fd, {
+                // //convert to arraybuffer
+                // var fileReader = new FileReader();
+                // fileReader.onload = function (event) {
+                //   var b =event.target.result;
+                // };
+                // fileReader.readAsArrayBuffer(file);
 
-                    }).then(function (response) {
-                        debugger;
-                    }).catch(function (error) {
-                        debugger;
-                    })
+                if(file.type === 'audio/mp3') {
+                    var fd = new FormData();
+                    fd.append('file', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/upload');
+                    xhr.send(fd);
+                    xhr.onreadystatechange = function () {
+                        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                            _self.songList.push(JSON.parse(xhr.responseText));
+                            if(!$scope.$$phase) {
+                                $scope.$digest();
+                            }
+                        }
+                    }
                 } else {
                     alert('haha. only mp3 files');
                 }
+            }else {
+                alert('Please select a file');
             }
         }
 
