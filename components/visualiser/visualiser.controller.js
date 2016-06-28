@@ -124,6 +124,15 @@
                 this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
             };
 
+            this.clearAll = function() {
+                for (var i = 0; i < this.drawFunctions.length; i++) {
+                    smCanvasCtxArray[i].fillStyle = '#354147';
+                    smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                }
+
+                mainContext.fillStyle = '#354147';
+                mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+            };
 
             function drawVolumeBooms(context, width, height) {
                 context.beginPath();
@@ -241,13 +250,21 @@
         
         function getSongList() {
             var myWorker = new Worker('components/visualiser/worker.js');
-            myWorker.onmessage = function (songList) {
-                _self.songList = JSON.parse(songList.data);
-                if (!$scope.$$phase) {
-                    $scope.$digest();
+            myWorker.onmessage = function (event) {
+                if(event.data.type === 'songList') {
+                    _self.songList = event.data.data;
+                    if (!$scope.$$phase) {
+                        $scope.$digest();
+                    }
+                    _self.songList[0].isPlaying = true;
+                    fetchSound(_self.songList[0].url);
+
+                } else if (event.data.type === 'listWithImages') {
+                    _self.songList = event.data.data;
+                    if (!$scope.$$phase) {
+                        $scope.$digest();
+                    }
                 }
-                _self.songList[0].isPlaying = true;
-                fetchSound(_self.songList[0].url);
             }
         }
 
@@ -358,6 +375,8 @@
                 } else {
                     if (_self.showVisualiser) {
                         _self.vManager.draw();
+                    } else {
+                        _self.vManager.clearAll();
                     }
                     if (!$scope.$$phase) {
                         _self.trackPosition = Math.floor(_self.audioContext.currentTime - _self.startTime);

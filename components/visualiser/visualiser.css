@@ -28,14 +28,19 @@
 .vertical-slider-left-item {
     height: 25%;
     padding: 10px 10px;
+    background: #f39c12;
 }
 
 .vertical-slider-right-item {
     height: 20%;
     padding: 10px 10px;
     border: 1px solid #0f0f0f;
-}
+    background: #f39c12;
 
+}
+.vertical-slider-right-item a {
+    color: white ;
+}
 .vertical-slider-left-item canvas {
 
     height: 100%;
