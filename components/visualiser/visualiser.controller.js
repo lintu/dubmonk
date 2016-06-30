@@ -43,7 +43,7 @@
         _self.focus = false;
         //Node data
         this.gainValueChanged = gainValueChanged;
-        this.gainValue = 10;
+        this.gainValue = 1;
 
         
         this.goFullScreen = function () {
@@ -82,7 +82,6 @@
 
         function VisualisationManager(smallCanvasList, mainVisualisationIndex) {
 
-
             var mainCanvas = document.getElementById('visualiser');
 
             var smCanvasArray = [],
@@ -91,14 +90,136 @@
             mainCanvas.height = HEIGHT;
             mainCanvas.style.backgroundColor = '354147';
 
-            var mainContext = mainCanvas.getContext('2d');
-            this.drawFunctions = [drawVolumeChips, drawVolumeBooms, drawFrequencyCircle, drawByteDomainData, drawFrequencyBar];
+            //var mainContext = mainCanvas.getContext('2d');
+            this.drawFunctions = [drawVolumeChips,
+                drawVolumeBooms,
+                drawFrequencyCircle,
+                drawByteDomainData,
+                drawFrequencyBar
+                ];
 
-            smallCanvasList.push(1);
+            smallCanvasList.push(1); //TODO wtf is this
             smallCanvasList.push(2);
             smallCanvasList.push(3);
             smallCanvasList.push(4);
             smallCanvasList.push(5);
+            //smallCanvasList.push(6);
+
+            //THREEJS
+            //Testing with threejs
+            var particle,
+                mouseX = 0, mouseY = 0,
+                windowHalfX = WIDTH/ 2,
+                windowHalfY = HEIGHT / 2;
+
+
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, WIDTH/HEIGHT, 1, 10000);
+            camera.position.z = 100;
+            var renderer = new THREE.WebGLRenderer({canvas: mainCanvas});
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(WIDTH, HEIGHT);
+
+            //particles
+            var PI2 = Math.PI * 2;
+            var material = new THREE.SpriteCanvasMaterial({
+                color: 0x00ff00,
+                program: function (context) {
+                    context.beginPath();
+                    context.arc( 0, 0, 0.5, 0, PI2, true );
+                    context.fill();
+                },
+                map: null
+            });
+
+            for ( var i = 0; i < 1000; i ++ ) {
+
+                particle = new THREE.Sprite( material );
+                particle.position.x = Math.random() * 2 - 1;
+                particle.position.y = Math.random() * 2 - 1;
+                particle.position.z = Math.random() * 2 - 1;
+                particle.position.normalize();
+                particle.position.multiplyScalar( Math.random() * 10 + 450 );
+                particle.scale.multiplyScalar( 2 );
+                scene.add( particle );
+
+            }
+
+            //lines
+            for (var j = 0; j < 300; j++) {
+
+                var geometry = new THREE.Geometry();
+
+                var vertex = new THREE.Vector3( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+                vertex.normalize();
+                vertex.multiplyScalar( 450 );
+
+                geometry.vertices.push( vertex );
+
+                var vertex2 = vertex.clone();
+                vertex2.multiplyScalar( Math.random() * 0.3 + 1 );
+
+                geometry.vertices.push( vertex2 );
+
+                var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: Math.random() } ) );
+                scene.add( line );
+            }
+
+            document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+            document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+            document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+            //
+
+            window.addEventListener( 'resize', onWindowResize, false );
+
+            function onWindowResize() {
+
+                windowHalfX = window.innerWidth / 2;
+                windowHalfY = window.innerHeight / 2;
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+            }
+
+            //
+
+            function onDocumentMouseMove(event) {
+
+                mouseX = event.clientX - windowHalfX;
+                mouseY = event.clientY - windowHalfY;
+            }
+
+            function onDocumentTouchStart( event ) {
+
+                if ( event.touches.length > 1 ) {
+
+                    event.preventDefault();
+
+                    mouseX = event.touches[ 0 ].pageX - windowHalfX;
+                    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+
+                }
+
+            }
+
+            function onDocumentTouchMove( event ) {
+
+                if ( event.touches.length == 1 ) {
+
+                    event.preventDefault();
+
+                    mouseX = event.touches[ 0 ].pageX - windowHalfX;
+                    mouseY = event.touches[ 0 ].pageY - windowHalfY;
+
+                }
+
+            }
+
+
 
             $timeout(function () { //to call a apply for smallCanvasList
                 smCanvasArray = document.getElementsByClassName('sm-canvas');
@@ -118,11 +239,21 @@
                     this.drawFunctions[i](smCanvasCtxArray[i], smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
                 }
 
-                mainContext.fillStyle = '#354147';
-                mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+                drawThreeSphere();
 
-                this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
+                //mainContext.fillStyle = '#354147';
+                //mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+
+                //this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
             };
+
+            function drawThreeSphere() {
+                camera.position.x += ( mouseX - camera.position.x ) * .05;
+                camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
+                camera.lookAt( scene.position );
+
+                renderer.render( scene, camera );
+            }
 
             this.clearAll = function() {
                 for (var i = 0; i < this.drawFunctions.length; i++) {
@@ -130,8 +261,8 @@
                     smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
                 }
 
-                mainContext.fillStyle = '#354147';
-                mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+                //mainContext.fillStyle = '#354147';
+                //mainContext.fillRect(0, 0, WIDTH, HEIGHT);
             };
 
             function drawVolumeBooms(context, width, height) {
