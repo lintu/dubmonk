@@ -65,11 +65,11 @@ function getID3Data(fileURL, callback) {
     id3({ file: fileURL , type: id3.OPEN_LOCAL }, function(err, tags) {
         tags.url = fileURL;
         tags.image = 'default';
-        if(tags.v2.image) {
-            var bytes = new Uint8Array(tags.v2.image.data);
-           tags.image = encode(bytes);
-            console.log(tags.image);
-        }
+        // if(tags.v2.image) {
+        //     var bytes = new Uint8Array(tags.v2.image.data);
+        //    tags.image = encode(bytes);
+        //     console.log(tags.image);
+        // }
         callback(tags);
     });
 }

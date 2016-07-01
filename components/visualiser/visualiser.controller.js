@@ -115,21 +115,20 @@
 
             var scene = new THREE.Scene();
             var camera = new THREE.PerspectiveCamera(75, WIDTH/HEIGHT, 1, 10000);
-            camera.position.z = 100;
-            var renderer = new THREE.WebGLRenderer({canvas: mainCanvas});
+            camera.position.z = 1000;
+            var renderer = new THREE.CanvasRenderer({canvas: mainCanvas});
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(WIDTH, HEIGHT);
 
             //particles
             var PI2 = Math.PI * 2;
             var material = new THREE.SpriteCanvasMaterial({
-                color: 0x00ff00,
+                color: 'rgb(243, 156, 18)',
                 program: function (context) {
                     context.beginPath();
                     context.arc( 0, 0, 0.5, 0, PI2, true );
                     context.fill();
-                },
-                map: null
+                }
             });
 
             for ( var i = 0; i < 1000; i ++ ) {
@@ -142,14 +141,12 @@
                 particle.position.multiplyScalar( Math.random() * 10 + 450 );
                 particle.scale.multiplyScalar( 2 );
                 scene.add( particle );
-
             }
 
             //lines
-            for (var j = 0; j < 300; j++) {
+            for (var j = 0; j < 512; j++) {
 
                 var geometry = new THREE.Geometry();
-
                 var vertex = new THREE.Vector3( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
                 vertex.normalize();
                 vertex.multiplyScalar( 450 );
@@ -157,7 +154,7 @@
                 geometry.vertices.push( vertex );
 
                 var vertex2 = vertex.clone();
-                vertex2.multiplyScalar( Math.random() * 0.3 + 1 );
+                vertex2.multiplyScalar( Math.random() * 0.3 + 1  );
 
                 geometry.vertices.push( vertex2 );
 
@@ -165,9 +162,9 @@
                 scene.add( line );
             }
 
-            document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-            document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-            document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+             document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+             document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+             document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 
             //
 
@@ -219,8 +216,6 @@
 
             }
 
-
-
             $timeout(function () { //to call a apply for smallCanvasList
                 smCanvasArray = document.getElementsByClassName('sm-canvas');
 
@@ -247,13 +242,6 @@
                 //this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
             };
 
-            function drawThreeSphere() {
-                camera.position.x += ( mouseX - camera.position.x ) * .05;
-                camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
-                camera.lookAt( scene.position );
-
-                renderer.render( scene, camera );
-            }
 
             this.clearAll = function() {
                 for (var i = 0; i < this.drawFunctions.length; i++) {
@@ -264,6 +252,35 @@
                 //mainContext.fillStyle = '#354147';
                 //mainContext.fillRect(0, 0, WIDTH, HEIGHT);
             };
+            function drawThreeSphere() {
+                var obj, i;
+
+                for (var i = scene.children.length - 1, j = 0; i >= 0; i--) {
+                    obj = scene.children[i];
+                    if (obj.type === 'Line') {
+                        var a = (_self.channel1FrequencyData[j] * 2) / 1000;
+                        var geometry = new THREE.Geometry();
+
+                        var vertex = obj.geometry.vertices[0];
+                        geometry.vertices.push(vertex);
+
+                        var vertex2 = vertex.clone();
+                        vertex2.multiplyScalar(1 + a);
+
+                        geometry.vertices.push(vertex2);
+                        obj.material.color = new THREE.Color("rgb(243, 156, 18)");
+                        obj.geometry = geometry;
+                    } else {
+                        break; //Assuming lines are added after circles
+                    }
+                }
+
+                camera.position.x += ( mouseX - camera.position.x ) * .05;
+                camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
+                camera.lookAt( scene.position );
+
+                renderer.render( scene, camera );
+            }
 
             function drawVolumeBooms(context, width, height) {
                 context.beginPath();

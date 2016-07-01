@@ -6,32 +6,30 @@
         </div>
     </div>
     <div id="vertical-slider-left" class="row no-margin">
-        <div class="vertical-slider-left-item" ng-repeat="smCanvas in ctrl.smallCanvasList"
+        <div class="list-group">
+        <div class="vertical-slider-left-item list-group-item" ng-repeat="smCanvas in ctrl.smallCanvasList"
              ng-click="ctrl.mainVisualiserIndex = $index">
             <canvas class="sm-canvas" style="width: 100%; height: 100%; display: block"></canvas>
         </div>
-    </div>
-    <div>
-        Hello
-        <canvas id="dummy" />
-    </div>
-    <div id="vertical-slider-right" class="row no-margin">
-        <div class="vertical-slider-right-item" ng-repeat="song in ctrl.songList track by $index">
-            <div class="col-sm-4">
-                <img src="components/visualiser/img/monk.png" height="70" width="70">
-            </div>
-            <div class="col-sm-6">
-                <a href="#" ng-click="ctrl.playFromList($index)" ng-class="{'now-playing': $index === ctrl.nowPlayingIndex}" ><span ng-if="song.artist">{{song.artist}}</span>
-                    <span ng-if="!song.artist">Unknown</span>
-                    <span ng-if="song.album"> {{song.album}} </span>
-                    <span ng-if="!song.album">Unknown </span>
-                    <br>
-                    <span ng-if="song.title"> {{song.title}}</span>
-                    <span ng-if="!song.title"> Unknown</span>
-                </a>
-            </div>
-
         </div>
+    </div>
+    <div id="vertical-slider-right">
+        <div class="list-group">
+        <div class="vertical-slider-right-item row no-margin list-group-item" ng-click="ctrl.playFromList($index)"
+             ng-repeat="song in ctrl.songList track by $index">
+            <div class="col-md-4  no-padding fit-in-parent">
+                <img src="components/visualiser/img/monk.jpg" class="img-responsive" >
+            </div>
+            <div class="col-md-8  no-padding fit-in-parent" ng-class="{'now-playing': $index === ctrl.nowPlayingIndex}">
+                <span ng-if="song.title"> {{song.title}}</span>
+                <span ng-if="!song.title"> Unknown</span>
+                <span ng-if="song.artist">{{song.artist}}</span>
+                <span ng-if="!song.artist">Unknown</span>
+                <span ng-if="song.album"> {{song.album}} </span>
+                <span ng-if="!song.album">Unknown </span>
+            </div>
+        </div>
+            </div>
     </div>
     <div id="controls" class="row no-margin">
         <div class="row">
@@ -51,7 +49,8 @@
         <div class="row"></div>
         <div class="col-sm-6"></div>
         <div class="col-sm-6">
-            Playing {{ctrl.songList[ctrl.nowPlayingIndex].title}} by {{ctrl.songList[ctrl.nowPlayingIndex].artist}} from {{ctrl.songList[ctrl.nowPlayingIndex].album}}
+            {{ctrl.songList[ctrl.nowPlayingIndex].title}} {{ctrl.songList[ctrl.nowPlayingIndex].artist}}
+            {{ctrl.songList[ctrl.nowPlayingIndex].album}}
         </div>
         <div class="row">
             <div class="col-sm-4">

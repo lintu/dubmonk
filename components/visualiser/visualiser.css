@@ -36,11 +36,15 @@
     padding: 10px 10px;
     border: 1px solid #0f0f0f;
     background: #f39c12;
+    overflow: hidden;
+    cursor: pointer;
+}
 
+.fit-in-parent {
+    height: 100%;
+    overflow:auto;
 }
-.vertical-slider-right-item a {
-    color: white ;
-}
+
 .vertical-slider-left-item canvas {
 
     height: 100%;
