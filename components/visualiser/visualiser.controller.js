@@ -6,7 +6,14 @@
 
     function VisualiserController($timeout, $scope, $http) {
         var _self = this;
-
+// Without JQuery
+        var slider = new Slider('#ex4', {
+            reversed : true,
+            formatter: function(value) {
+                _self.gainValue = value;
+                gainValueChanged()
+            }
+        });
         //WebAudio
         this.audioContext = null;
 
@@ -34,6 +41,8 @@
         this.canvasCtx = null;
         this.animationId = 1;
 
+        this.mainCanvasType = '2d';
+        
         this.channel1FrequencyData = [];
         this.channel2FrequencyData = [];
         this.channel1TimeDomainData = [];
@@ -43,11 +52,16 @@
         _self.focus = false;
         //Node data
         this.gainValueChanged = gainValueChanged;
-        this.gainValue = 1;
+        this.gainValue = "1";
 
         
         this.goFullScreen = function () {
-            var fBtn = document.getElementById('visualiser');
+            var fBtn;
+            if(_self.mainCanvasType === '3d') {
+                fBtn = document.getElementById('3d-visualiser');
+            } else {
+                fBtn = document.getElementById('visualiser');
+            }
             if (fBtn.requestFullscreen) {
                 fBtn.requestFullscreen();
             } else if (fBtn.webkitRequestFullscreen) {
@@ -68,6 +82,7 @@
         this.previous = previous;
         this.upload = upload;
         this.playFromList = playFromList;
+        this.setMainItem = setMainItem;
 
         this.nowPlayingIndex = 0;
         
@@ -80,141 +95,66 @@
         this.mainVisualiserIndex = 1;
         init();
 
+        function setMainItem(index) {
+            if(_self.vManager) {
+                _self.mainCanvasType = _self.vManager.initMainCanvas(index);
+            }
+            $timeout(function () {
+                _self.mainVisualiserIndex = index;
+            }, 0);
+        }
+
         function VisualisationManager(smallCanvasList, mainVisualisationIndex) {
 
-            var mainCanvas = document.getElementById('visualiser');
+            var canvas2d = document.getElementById('visualiser');
+            var canvas3d = document.getElementById('3d-visualiser');
+
+            var mouseX = 0, mouseY = 0, windowHalfX = WIDTH/2, windowHalfY = HEIGHT/2;
+            var scene, camera, renderer;
 
             var smCanvasArray = [],
                 smCanvasCtxArray = [];
-            mainCanvas.width = WIDTH;
-            mainCanvas.height = HEIGHT;
-            mainCanvas.style.backgroundColor = '354147';
 
-            //var mainContext = mainCanvas.getContext('2d');
-            this.drawFunctions = [drawVolumeChips,
-                drawVolumeBooms,
-                drawFrequencyCircle,
-                drawByteDomainData,
-                drawFrequencyBar
+            var mainContext = canvas2d.getContext('2d');
+
+            canvas2d.width = WIDTH;
+            canvas2d.height = HEIGHT;
+            canvas2d.style.backgroundColor = '354147';
+
+            canvas3d.width = WIDTH;
+            canvas3d.height = HEIGHT;
+            canvas3d.style.backgroundColor = '354147';
+
+            this.initMainCanvas = function(index) {
+                var item = _self.vManager.drawFunctions[index];
+                clear3DCanvas();
+                if(item.type === '3d') {
+                    item.initFn();
+                }
+                return item.type;
+            };
+
+            this.drawFunctions = [
+                {type: '2d', drawFn:drawVolumeBooms, name: 'booms', initFn: function(){}},
+                {type: '2d', drawFn:drawFrequencyCircle, name: 'fcircle', initFn: function(){}},
+                {type: '2d', drawFn:drawByteDomainData, name: 'domain', initFn: function(){}},
+                {type: '2d', drawFn:drawFrequencyBar, name: 'bar', initFn: function(){}},
+                {type: '3d', drawFn:drawThreeSphere, name: '3dsphere', initFn: initThreeSphere}
                 ];
 
-            smallCanvasList.push(1); //TODO wtf is this
-            smallCanvasList.push(2);
-            smallCanvasList.push(3);
-            smallCanvasList.push(4);
-            smallCanvasList.push(5);
-            //smallCanvasList.push(6);
+            smallCanvasList.push({id: 1, url: ''}); //TODO wtf is this
+            smallCanvasList.push({id: 2, url: ''});
+            smallCanvasList.push({id: 3, url: ''});
+            smallCanvasList.push({id: 4, url: ''});
 
-            //THREEJS
-            //Testing with threejs
-            var particle,
-                mouseX = 0, mouseY = 0,
-                windowHalfX = WIDTH/ 2,
-                windowHalfY = HEIGHT / 2;
+            smallCanvasList.push({id: 6, url: 'components/visualiser/img/3d-thumbs/sphere.png'});
 
+            initThreeGlobals();
 
-            var scene = new THREE.Scene();
-            var camera = new THREE.PerspectiveCamera(75, WIDTH/HEIGHT, 1, 10000);
-            camera.position.z = 1000;
-            var renderer = new THREE.CanvasRenderer({canvas: mainCanvas});
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(WIDTH, HEIGHT);
-
-            //particles
-            var PI2 = Math.PI * 2;
-            var material = new THREE.SpriteCanvasMaterial({
-                color: 'rgb(243, 156, 18)',
-                program: function (context) {
-                    context.beginPath();
-                    context.arc( 0, 0, 0.5, 0, PI2, true );
-                    context.fill();
-                }
-            });
-
-            for ( var i = 0; i < 1000; i ++ ) {
-
-                particle = new THREE.Sprite( material );
-                particle.position.x = Math.random() * 2 - 1;
-                particle.position.y = Math.random() * 2 - 1;
-                particle.position.z = Math.random() * 2 - 1;
-                particle.position.normalize();
-                particle.position.multiplyScalar( Math.random() * 10 + 450 );
-                particle.scale.multiplyScalar( 2 );
-                scene.add( particle );
-            }
-
-            //lines
-            for (var j = 0; j < 512; j++) {
-
-                var geometry = new THREE.Geometry();
-                var vertex = new THREE.Vector3( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
-                vertex.normalize();
-                vertex.multiplyScalar( 450 );
-
-                geometry.vertices.push( vertex );
-
-                var vertex2 = vertex.clone();
-                vertex2.multiplyScalar( Math.random() * 0.3 + 1  );
-
-                geometry.vertices.push( vertex2 );
-
-                var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: Math.random() } ) );
-                scene.add( line );
-            }
-
-             document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-             document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-             document.addEventListener( 'touchmove', onDocumentTouchMove, false );
-
-            //
-
+            document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+            document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+            document.addEventListener( 'touchmove', onDocumentTouchMove, false );
             window.addEventListener( 'resize', onWindowResize, false );
-
-            function onWindowResize() {
-
-                windowHalfX = window.innerWidth / 2;
-                windowHalfY = window.innerHeight / 2;
-
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-
-                renderer.setSize( window.innerWidth, window.innerHeight );
-
-            }
-
-            //
-
-            function onDocumentMouseMove(event) {
-
-                mouseX = event.clientX - windowHalfX;
-                mouseY = event.clientY - windowHalfY;
-            }
-
-            function onDocumentTouchStart( event ) {
-
-                if ( event.touches.length > 1 ) {
-
-                    event.preventDefault();
-
-                    mouseX = event.touches[ 0 ].pageX - windowHalfX;
-                    mouseY = event.touches[ 0 ].pageY - windowHalfY;
-
-                }
-
-            }
-
-            function onDocumentTouchMove( event ) {
-
-                if ( event.touches.length == 1 ) {
-
-                    event.preventDefault();
-
-                    mouseX = event.touches[ 0 ].pageX - windowHalfX;
-                    mouseY = event.touches[ 0 ].pageY - windowHalfY;
-
-                }
-
-            }
 
             $timeout(function () { //to call a apply for smallCanvasList
                 smCanvasArray = document.getElementsByClassName('sm-canvas');
@@ -229,36 +169,99 @@
 
             this.draw = function () {
                 for (var i = 0; i < this.drawFunctions.length; i++) {
-                    smCanvasCtxArray[i].fillStyle = '#354147';
-                    smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
-                    this.drawFunctions[i](smCanvasCtxArray[i], smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                    if(smCanvasArray[i]) {
+                        smCanvasCtxArray[i].fillStyle = '#354147';
+                        smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                        this.drawFunctions[i].drawFn(smCanvasCtxArray[i], smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                    }
                 }
 
                 drawThreeSphere();
 
-                //mainContext.fillStyle = '#354147';
-                //mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+                mainContext.fillStyle = '#354147';
+                mainContext.fillRect(0, 0, WIDTH, HEIGHT);
 
-                //this.drawFunctions[_self.mainVisualiserIndex](mainContext, WIDTH, HEIGHT);
+                this.drawFunctions[_self.mainVisualiserIndex].drawFn(mainContext, WIDTH, HEIGHT);
             };
-
 
             this.clearAll = function() {
                 for (var i = 0; i < this.drawFunctions.length; i++) {
-                    smCanvasCtxArray[i].fillStyle = '#354147';
-                    smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                    if(smCanvasArray[i]) {
+                        smCanvasCtxArray[i].fillStyle = '#354147';
+                        smCanvasCtxArray[i].fillRect(0, 0, smCanvasArray[i].clientWidth, smCanvasArray[i].clientHeight);
+                    }
                 }
 
-                //mainContext.fillStyle = '#354147';
-                //mainContext.fillRect(0, 0, WIDTH, HEIGHT);
+                mainContext.fillStyle = '#354147';
+                mainContext.fillRect(0, 0, WIDTH, HEIGHT);
             };
-            function drawThreeSphere() {
-                var obj, i;
 
-                for (var i = scene.children.length - 1, j = 0; i >= 0; i--) {
+            function initThreeGlobals() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
+                renderer = new THREE.CanvasRenderer({canvas: canvas3d});
+
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(WIDTH, HEIGHT);
+            }
+
+            function clear3DCanvas() {
+                camera.position.x = 1500;
+                scene.children = [];
+            }
+
+            function initThreeSphere() {
+                camera.position.z = 1;
+                //particles
+                var PI2 = Math.PI * 2;
+                var material = new THREE.SpriteCanvasMaterial({
+                    color: 'rgb(243, 156, 18)',
+                    program: function (context) {
+                        context.beginPath();
+                        context.arc( 0, 0, 0.5, 0, PI2, true );
+                        context.fill();
+                    }
+                });
+                var particle;
+                for ( var i = 0; i < 2000; i ++ ) {
+
+                    particle = new THREE.Sprite( material );
+                    particle.position.x = Math.random() * 2 - 1;
+                    particle.position.y = Math.random() * 2 - 1;
+                    particle.position.z = Math.random() * 2 - 1;
+                    particle.position.normalize();
+                    particle.position.multiplyScalar( Math.random() * 10 + 450 );
+                    particle.scale.multiplyScalar( 2 );
+                    scene.add( particle );
+                }
+
+                //lines
+                for (var j = 0; j < 256; j++) {
+
+                    var geometry = new THREE.Geometry();
+                    var vertex = new THREE.Vector3( Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1 );
+                    vertex.normalize();
+                    vertex.multiplyScalar( 450 );
+
+                    geometry.vertices.push( vertex );
+
+                    var vertex2 = vertex.clone();
+                    vertex2.multiplyScalar( Math.random() * 0.3 + 1  );
+
+                    geometry.vertices.push( vertex2 );
+
+                    var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: Math.random() } ) );
+                    scene.add( line );
+                }
+            }
+
+            function drawThreeSphere() {
+                var obj;
+                //var volume = getTrackVolume(_self.channel1FrequencyData);
+                for (var i = scene.children.length - 1, j = 0; i >= 0; i--, j++) {
                     obj = scene.children[i];
                     if (obj.type === 'Line') {
-                        var a = (_self.channel1FrequencyData[j] * 2) / 1000;
+                        var a = (_self.channel1FrequencyData[j] ) / 1000;
                         var geometry = new THREE.Geometry();
 
                         var vertex = obj.geometry.vertices[0];
@@ -275,8 +278,11 @@
                     }
                 }
 
-                camera.position.x += ( mouseX - camera.position.x ) * .05;
-                camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
+                if(camera.position.z < 1500) {
+                    camera.position.z += 1;
+                }
+                camera.position.x += ( mouseX - camera.position.x ) * .5;
+                camera.position.y += ( - mouseY + 200 - camera.position.y ) * .5;
                 camera.lookAt( scene.position );
 
                 renderer.render( scene, camera );
@@ -284,26 +290,59 @@
 
             function drawVolumeBooms(context, width, height) {
                 context.beginPath();
-                context.arc(width * (1/3), height/2, getTrackVolume(_self.channel1FrequencyData), 0, 2 * Math.PI, false);
+                context.arc(width * (1/3), height/2, getTrackVolume(_self.channel1FrequencyData) / 2, 0, 2 * Math.PI, false);
 
-                context.arc(width * (2/3), height/2, getTrackVolume(_self.channel2FrequencyData), 0, 2 * Math.PI, false);
+                context.arc(width * (2/3), height/2, getTrackVolume(_self.channel2FrequencyData)/2, 0, 2 * Math.PI, false);
 
-                context.fillStyle = 'red';
+                context.fillStyle = '#F39C12';
                 context.fill();
 
+            }
+            function onWindowResize() {
+
+                windowHalfX = window.innerWidth / 2;
+                windowHalfY = window.innerHeight / 2;
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            }
+
+            function onDocumentMouseMove(event) {
+               mouseX = event.clientX - windowHalfX;
+                mouseY = event.clientY- windowHalfY;
+            }
+
+            function onDocumentTouchStart( event ) {
+                if ( event.touches.length > 1 ) {
+                    event.preventDefault();
+
+                    mouseX = event.touches[ 0 ].pageX- windowHalfX;
+                    mouseY = event.touches[ 0 ].pageY- windowHalfY;
+                }
+            }
+
+            function onDocumentTouchMove( event ) {
+                if ( event.touches.length == 1 ) {
+                    event.preventDefault();
+
+                    mouseX = event.touches[ 0 ].pageX- windowHalfX;
+                    mouseY = event.touches[ 0 ].pageY- windowHalfY;
+               }
             }
 
             function drawFrequencyCircle(context, width, height) {
 
-                var skipInterval = Math.floor(_self.channel1FrequencyData.length / 360);
+                var skipInterval = 1;
                 for (var i = 0; i < _self.channel1FrequencyData.length; i++) {
                     var height1 = (height) * (_self.channel1FrequencyData[i] / 256);
 
-                    var height2 = (height) * (_self.channel2FrequencyData[i] / 256);
+                    //var height2 = (height) * (_self.channel2FrequencyData[i] / 256);
 
                     if (i % skipInterval === 0 && height1 > 0) {
                         context.beginPath();
-                        context.strokeStyle = 'white';
+                        context.strokeStyle = '#F39C12';
                         context.moveTo(width * (1/4), height/2);
                         var lineToPoint1 = getPointOnCircle(width * (1/3), height/2, height1, i * 0.0174533);
                         context.lineTo(lineToPoint1.x, lineToPoint1.y);
@@ -325,15 +364,15 @@
             function drawFrequencyBar(context, width, height) {
 
                 context.beginPath();
-                context.fillStyle = 'blue';
-                var x1 = 0,
+                context.fillStyle = '#F39C12';
+                var x1 = 2,
                     x2 = 0,
-                    sliceWidth = width / _self.channel1FrequencyData.length;
+                    sliceWidth = (width - 4) / _self.channel1FrequencyData.length;
                 for (var i = 0; i < _self.channel1FrequencyData.length; i++) {
-                    var height1 = (height) * (_self.channel1FrequencyData[i] / 256);
-                    var height2 = (height - 400) * (_self.channel2FrequencyData[i] / 256);
-                    var y1 = (height + 50) - height1 - 1;
-                    var y2 = (height + 20) - height2 - 1;
+                    var height1 = (height) * (_self.channel1FrequencyData[i] / 400);
+                    //var height2 = (height - 400) * (_self.channel2FrequencyData[i] / 256);
+                    var y1 = (height - (height / 10)) - height1 - 1;
+                    //var y2 = (height + 20) - height2 - 1;
                     context.fillRect(x1, y1, sliceWidth, height1);
                     //context.fillRect(x2, y2, sliceWidth, height2);
 
@@ -343,56 +382,40 @@
                 context.fillStyle = 'rgb(234, 91, 77)';
                 context.fill();
             }
-            
-            function drawVolumeChips(context, width, height) {
-                var leftVolume = Math.floor(getTrackVolume(_self.channel1FrequencyData));
-                var rightVolume = Math.floor(getTrackVolume(_self.channel2FrequencyData));
-
-                for (var x = 0; x <= leftVolume / 5; x += 1) {
-                    var lChip = new Chip(getRandomInt(10, width / 2), getRandomInt(10, height), 20, leftVolume / 3, '#4AFF6B');
-                    lChip.draw(context);
-                }
-                for (var y = 0; y <= rightVolume / 5; y += 1) {
-                    var rChip = new Chip(getRandomInt(width / 2, width - 10), getRandomInt(10, height), 20, rightVolume / 3, '#5689BD');
-                    rChip.draw(context);
-                }
-            }
         }
 
         function drawByteDomainData(context, width, height) {
             //entire wave
             context.beginPath();
-            context.fillStyle = 'red';
+            context.fillStyle = '#F39C12';
 
-            var x1 = 0,
+            var x1 = 2,
                 x2 = 0,
-                sliceWidth = width / _self.channel1TimeDomainData.length;
+                sliceWidth = (width - 4) / _self.channel1TimeDomainData.length;
             for (var i = 0; i < _self.channel1TimeDomainData.length; i++) {
                 var timeData1 = _self.channel1TimeDomainData[i] / 256;
                 var y1 = (height + 10) - (height * timeData1) - 1;
-                context.fillStyle = 'hsl(' + getRandomInt(1, 100) + ', 100%, 50%)';
+                //context.fillStyle = 'hsl(' + getRandomInt(1, 100) + ', 100%, 50%)';
                 context.fillRect(x1, y1, sliceWidth, 1);
                 context.fill();
                 x1 += sliceWidth;
             }
 
-            for (var j = 0; j < _self.channel1TimeDomainData.length; j++) {
-                var timeData2 = _self.channel1TimeDomainData[j] / 256;
-                var y2 = (height - 10) - (height * timeData2) - 1;
-                context.fillStyle = 'hsl(' + getRandomInt(1, 100) + '), 100%, ' + getRandomInt(1, 100) + '%';
-                context.fillRect(x2, y2, sliceWidth, 1);
-                context.fill();
-                x2 += sliceWidth;
-            }
+            // for (var j = 0; j < _self.channel1TimeDomainData.length; j++) {
+            //     var timeData2 = _self.channel1TimeDomainData[j] / 256;
+            //     var y2 = (height - 10) - (height * timeData2) - 1;
+            //     //context.fillStyle = 'hsl(' + getRandomInt(1, 100) + '), 100%, ' + getRandomInt(1, 100) + '%';
+            //     context.fillRect(x2, y2, sliceWidth, 1);
+            //     context.fill();
+            //     x2 += sliceWidth;
+            // }
         }
 
         function init() {
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             _self.vManager = new VisualisationManager(_self.smallCanvasList, _self.mainVisualiserIndex);
             setupNodes();
-
             getSongList();
-
             //fetchSound(getNextTrackUrl());
         }
         
@@ -455,6 +478,7 @@
             _self.nodes.distortion.connect(_self.nodes.biquad);
             _self.nodes.biquad.connect(_self.nodes.gain, 0, 0);
             _self.nodes.gain.connect(_self.audioContext.destination, 0, 0);
+            _self.nodes.gain.gain.setValueAtTime(Number(_self.gainValue), _self.audioContext.currentTime)
         }
 
         function fetchSound(url) {
@@ -463,18 +487,6 @@
             xhr.responseType = 'arraybuffer';
             xhr.onload = function () {
                 processArrayBuffer(xhr.response);
-
-                // var detailsXhr = new XMLHttpRequest();
-                // detailsXhr.open('GET', '/getSongDetails?url=' + url, true);
-                // //xhr.responseType = 'application/json';
-                // detailsXhr.onload = function () {
-                //
-                //     _self.songDetails = JSON.parse(detailsXhr.response);
-                //     if (!$scope.$$phase) {
-                //         $scope.$digest();
-                //     }
-                // };
-                // detailsXhr.send();
             };
             xhr.send();
         }
@@ -535,35 +547,6 @@
             }
         }
 
-        function Chip(x, y, r1, r2, c) {
-            this.r1 = r1;
-            this.r2 = r2;
-            this.x = x;
-            this.y = y;
-
-            this.color = c;
-            this.strokeColor = '#7F8283';
-
-            this.draw = function (ctx) {
-                ctx.beginPath();
-                ctx.arc(x, y, this.r2, 0, 2 * Math.PI, false);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(x, y, this.r1, 0, 2 * Math.PI, false);
-                ctx.lineWidth = this.r2 / 7;
-                ctx.strokeStyle = this.strokeColor;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.arc(x, y, 5, 0, 2 * Math.PI, false);
-                ctx.fillStyle = 'grey';
-                ctx.fill();
-            }
-        }
-
-
         function trackPositionChanged() {
             if (_self.isPaused) {
                 pause();
@@ -591,6 +574,7 @@
                 threadFunction();
 
                 _self.isPaused = false;
+                gainValueChanged();
             } else {
                 alert('Song is not ready to play');
             }
@@ -679,9 +663,13 @@
         }
 
         function gainValueChanged() {
-            if (_self.nodes.gain) {
-                _self.nodes.gain.gain.exponentialRampToValueAtTime(_self.gainValue * (1 / 10), _self.audioContext.currentTime + 0.2);
-                //_self.nodes.gain.gain.value = _self.gainValue * (1 / 10);
+            if (_self.nodes && _self.nodes.gain) {
+                if(_self.gainValue != 0 && _self.gainValue !=1) {
+                    _self.nodes.gain.gain.exponentialRampToValueAtTime(_self.gainValue * (1 / 10), _self.audioContext.currentTime + .5);
+                    //_self.nodes.gain.gain.value = _self.gainValue * (1 / 10);
+                } else {
+                    _self.nodes.gain.gain.value = 0;
+                }
             }
         }
 

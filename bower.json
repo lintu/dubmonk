@@ -22,6 +22,7 @@
     "angular": "latest",
     "angular-ui-router": "latest",
     "angular-animate": "latest",
-    "bootstrap": "latest"
+    "bootstrap": "latest",
+    "seiyria-bootstrap-slider": "^7.1.1"
   }
 }
