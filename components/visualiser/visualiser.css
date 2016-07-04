@@ -216,3 +216,36 @@ input[type=range].plain-range:focus::-ms-fill-upper {
 .slider.slider-vertical .slider-track .slider-selection {
     background: #e67e22;
 }
+
+.info-service {
+    position: absolute;
+    display: block;
+    height: auto;
+    width: 90%;
+    top: 10px;
+    left: 5%;
+    background-color: #c0a16b;
+}
+.info-service .in {
+    animation: fade-in 2.0s forwards;
+}
+.info-service .out {
+    animation: fade-out 2.0s forwards;
+}
+
+@keyframes fade-in{
+    from {
+        height: 0px;
+    }
+    to {
+        height: 30px;
+    }
+}
+@keyframes fade-out{
+    from {
+        height: 30px;
+    }
+    to {
+        height: 0px;
+    }
+}
