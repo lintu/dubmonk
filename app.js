@@ -37,7 +37,12 @@ app.get('/', function (req, res) {
 app.post('/upload', upload.single('file'), function(req, res, next){
     id3({ file: req.file.destination + req.file.filename, type: id3.OPEN_LOCAL }, function(err, tags) {
         tags.url = req.file.destination + req.file.filename;
-        res.json(tags);
+
+        var base64Data = req.body.data.replace(/^data:image\/png;base64,/, "");
+        require("fs").writeFile('a.'+ req.body.format, base64Data, 'base64', function(err) {
+            tags.image = '';
+            res.json(tags);
+        });
     });
 });
 
@@ -65,11 +70,15 @@ function getID3Data(fileURL, callback) {
     id3({ file: fileURL , type: id3.OPEN_LOCAL }, function(err, tags) {
         tags.url = fileURL;
         tags.image = 'default';
-        // if(tags.v2.image) {
-        //     var bytes = new Uint8Array(tags.v2.image.data);
-        //    tags.image = encode(bytes);
-        //     console.log(tags.image);
-        // }
+        if(tags.v2.image) {
+            var dataArray = tags.v2.image.data;
+            tags.image ='';
+            for(var i=0; i < dataArray.length; i++) {
+                tags.image += String.fromCharCode(dataArray[i]);
+            }
+
+            tags.image = "data:" + tags.v2.image.mime + ";base64,"+ new Buffer(tags.image).toString('base64');
+        }
         callback(tags);
     });
 }

@@ -70,7 +70,7 @@
         this.vManager;
         this.smallCanvasList = [];
         this.mainVisualiserIndex = 1;
-
+this.imageData = '';
         this.songList = []
 
         init();
@@ -103,7 +103,29 @@
             setupNodes();
             getSongList();
         }
-        
+
+        function processImages(blob, callback) {
+           jsmediatags.read(blob, {
+                onSuccess: function(tag) {
+                    var dataUrl = '';
+                    if(tag.tags.picture) {
+                        var base64String = "";
+                        for (var i = 0; i < tag.tags.picture.data.length; i++) {
+                            base64String += String.fromCharCode(tag.tags.picture.data[i]);
+                        }
+                        dataUrl = "data:" + tag.tags.picture.format + ";base64," + window.btoa(base64String);
+                        callback(dataUrl, tag.tags.picture.format);
+                    }
+                },
+                onError: function(error) {
+                    console.log(error);
+                    callback(null);
+                }
+            });
+
+            // From remote host
+
+        }
         function getSongList() {
             var myWorker = new Worker('components/visualiser/worker.js');
             myWorker.onmessage = function (event) {
@@ -115,11 +137,6 @@
                     _self.songList[0].isPlaying = true;
                     fetchSound(_self.songList[0].url);
 
-                } else if (event.data.type === 'listWithImages') {
-                    _self.songList = event.data.data;
-                    if (!$scope.$$phase) {
-                        $scope.$digest();
-                    }
                 }
             }
         }
@@ -319,26 +336,32 @@
 
             if(file) {
                 InfoService.addAlert('Starting upload...');
-                if(file.type === 'audio/mp3') {
-                    var fd = new FormData();
-                    fd.append('file', file);
+                processImages(file, function(dataUri, format){
+                    if(file.type === 'audio/mp3') {
+                        var fd = new FormData();
+                        fd.append('file', file);
+                        fd.append('data', dataUri);
+                        fd.append('format', format.split('/')[1]);
+                        var xhr = new XMLHttpRequest();
 
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', '/upload');
-                    xhr.send(fd);
-                    xhr.onreadystatechange = function () {
-                        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-                            InfoService.addAlert('Yes done with upload. you can start listening...');
+                        xhr.open('POST', '/upload');
+                        xhr.send(fd);
+                        xhr.onreadystatechange = function () {
+                            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                                InfoService.addAlert('Yes done with upload. you can start listening...');
 
-                            _self.songList.push(JSON.parse(xhr.responseText));
-                            if(!$scope.$$phase) {
-                                $scope.$digest();
+                                _self.songList.push(JSON.parse(xhr.responseText));
+                                _self.imageData = dataUri;
+                                if(!$scope.$$phase) {
+                                    $scope.$digest();
+                                }
                             }
                         }
+                    } else {
+                        alert('haha. only mp3 files');
                     }
-                } else {
-                    alert('haha. only mp3 files');
-                }
+                });
+
             }else {
                 alert('Please select a file');
             }
