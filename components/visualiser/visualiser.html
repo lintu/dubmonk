@@ -1,6 +1,4 @@
 <div class="visualiser" style="color: white">
-
-    <img src="{{ctrl.imageData}}">
     <!--Hello-->
     <div class="row no-margin" style="height: 100%;">
         <div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 no-padding" style="height: 100%;">
@@ -21,7 +19,7 @@
         <div class="vertical-slider-right-item row no-margin list-group-item" ng-click="ctrl.playFromList($index)"
              ng-repeat="song in ctrl.songList track by $index">
             <div class="col-md-4  no-padding fit-in-parent">
-                <img src="components/visualiser/img/monk.jpg" class="img-responsive" >
+                <img src="{{song.imageUrl}}" class="img-responsive" >
             </div>
             <div class="col-md-8  no-padding fit-in-parent" ng-class="{'now-playing': $index === ctrl.nowPlayingIndex}">
                 <span ng-if="song.title"> {{song.title}}</span>

@@ -27,14 +27,14 @@
         this.soundBuffer;
         this.isPaused = false;
         this.isLooped = false;
-        this.showVisualiser = false;
+        this.showVisualiser = true;
 
         //Canvas
         this.canvas = null;
         this.canvasCtx = null;
         this.animationId = 1;
 
-        this.mainCanvasType = '2d';
+        this.mainCanvasType = '3d';
         
         this.channel1FrequencyData = [];
         this.channel2FrequencyData = [];
@@ -69,9 +69,9 @@
 
         this.vManager;
         this.smallCanvasList = [];
-        this.mainVisualiserIndex = 1;
-this.imageData = '';
-        this.songList = []
+        this.mainVisualiserIndex = 4;
+        
+        this.songList = [];
 
         init();
 
@@ -83,8 +83,6 @@ this.imageData = '';
                 _self.mainVisualiserIndex = index;
             }, 0);
         }
-
-
 
         function init() {
             InfoService.addAlert('Welcome');
@@ -100,6 +98,7 @@ this.imageData = '';
 
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             _self.vManager = new VisualisationManager(_self.smallCanvasList, _self.mainVisualiserIndex);
+            setMainItem(_self.mainVisualiserIndex);
             setupNodes();
             getSongList();
         }
@@ -113,8 +112,10 @@ this.imageData = '';
                         for (var i = 0; i < tag.tags.picture.data.length; i++) {
                             base64String += String.fromCharCode(tag.tags.picture.data[i]);
                         }
-                        dataUrl = "data:" + tag.tags.picture.format + ";base64," + window.btoa(base64String);
+                        dataUrl = window.btoa(base64String);
                         callback(dataUrl, tag.tags.picture.format);
+                    } else {
+                        callback(undefined, undefined);
                     }
                 },
                 onError: function(error) {
@@ -341,7 +342,7 @@ this.imageData = '';
                         var fd = new FormData();
                         fd.append('file', file);
                         fd.append('data', dataUri);
-                        fd.append('format', format.split('/')[1]);
+                        fd.append('format', format? format.split('/')[1] : '');
                         var xhr = new XMLHttpRequest();
 
                         xhr.open('POST', '/upload');
@@ -351,7 +352,6 @@ this.imageData = '';
                                 InfoService.addAlert('Yes done with upload. you can start listening...');
 
                                 _self.songList.push(JSON.parse(xhr.responseText));
-                                _self.imageData = dataUri;
                                 if(!$scope.$$phase) {
                                     $scope.$digest();
                                 }
@@ -487,7 +487,7 @@ this.imageData = '';
             function initThreeGlobals() {
                 scene = new THREE.Scene();
                 camera = new THREE.PerspectiveCamera(55, WIDTH/HEIGHT, 1, 10000);
-                renderer = new THREE.CanvasRenderer({canvas: canvas3d});
+                renderer = new THREE.CanvasRenderer({canvas: canvas3d, alpha: true});
 
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(WIDTH, HEIGHT);
