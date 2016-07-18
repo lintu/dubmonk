@@ -1,0 +1,115 @@
+<main >
+    <ul class="grid" masonry='{ "transitionDuration" : "0.4s" , "itemSelector" : ".grid__item"}'>
+        <li class="grid__item" masonry-tile ng-repeat="song in ctrl.songList track by $index" ng-click="ctrl.playFromList($index)">
+            <a class="grid__link">
+                <div class="img-wrap img-wrap--grid">
+                    <img class="img img--grid" src="{{song.imageUrl}}" alt="album1" />
+                </div>
+                <span class="year">{{song.year}}</span>
+                <h2 class="artist">{{song.artist}}</h2>
+                <h3 class="title">{{song.title}}</h3>
+            </a>
+        </li>
+    </ul>
+
+    <!--Hello-->
+    <div class="row no-margin" style="height: 100%;">
+        <div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 no-padding" style="height: 100%;">
+            <canvas id="visualiser" ng-show="ctrl.mainCanvasType === '2d'" style="width: 100%; height: 100%; display: block"></canvas>
+            <canvas id="3d-visualiser" ng-show="ctrl.mainCanvasType === '3d'" style="width: 100%; height: 100%; display: block"></canvas>
+        </div>
+    </div>
+    <!--<div id="vertical-slider-left" class="row no-margin">-->
+
+        <!--<div class="vertical-slider-left-item " ng-repeat="smCanvas in ctrl.smallCanvasList"-->
+             <!--ng-click="ctrl.setMainItem($index)">-->
+            <!--<canvas ng-if="smCanvas.url === ''" class="sm-canvas" style="width: 100%; height: 100%; display: block"></canvas>-->
+            <!--<img ng-if="smCanvas.url !== ''" src="{{smCanvas.url}}" style="width:100%; height: 100%;">-->
+        <!--</div>-->
+    <!--</div>-->
+    <!--<div id="vertical-slider-right">-->
+        <!--<div class="list-group">-->
+            <!--<div class="vertical-slider-right-item row no-margin list-group-item" ng-click="ctrl.playFromList($index)"-->
+                 <!--ng-repeat="song in ctrl.songList track by $index">-->
+                <!--<div class="col-md-4  no-padding fit-in-parent">-->
+                    <!--<img src="{{song.imageUrl}}" class="img-responsive" >-->
+                <!--</div>-->
+                <!--<div class="col-md-8  no-padding fit-in-parent" ng-class="{'now-playing': $index === ctrl.nowPlayingIndex}">-->
+                    <!--<span ng-if="song.title"> {{song.title}}</span>-->
+                    <!--<span ng-if="!song.title"> Unknown</span>-->
+                    <!--<span ng-if="song.artist">{{song.artist}}</span>-->
+                    <!--<span ng-if="!song.artist">Unknown</span>-->
+                    <!--<span ng-if="song.album"> {{song.album}} </span>-->
+                    <!--<span ng-if="!song.album">Unknown </span>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+    <div id="controls" class="row no-margin">
+        <div class="row">
+            <div class="col-sm-6">
+                <!--<input name="file" id="upload-file" type="file" style="display: inline"/>-->
+
+                <label for="upload-file" class="" >
+                    <input class="input-file" name="file" id="upload-file"
+                           type="file" />
+                    <span><img src="components/visualiser/img/select-audio.png" height="50"></span>
+                    <i class="bento-icon-chevron-right"></i>
+                </label>
+
+                <a href="#"><img src="components/visualiser/img/upload.png" ng-click="ctrl.upload()" height="50"></a>
+            </div>
+        </div>
+        <div class="row"></div>
+        <div class="col-sm-6"></div>
+        <div class="col-sm-6">
+            {{ctrl.songList[ctrl.nowPlayingIndex].title}} {{ctrl.songList[ctrl.nowPlayingIndex].artist}}
+            {{ctrl.songList[ctrl.nowPlayingIndex].album}}
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <button type="button" ng-click="ctrl.goFullScreen()"></button>
+                <a href="#"><img ng-show="ctrl.isPaused" src="components/visualiser/img/play.png"
+                                 ng-click="ctrl.resume()"
+                                 height="50"></a>
+                <a href="#"><img ng-show="!ctrl.isPaused" src="components/visualiser/img/pause.png"
+                                 ng-click="ctrl.pause()"
+                                 height="50"></a>
+                <a href="#"><img src="components/visualiser/img/stop.png" ng-click="ctrl.stop()" height="50"></a>
+                <a href="#"><img src="components/visualiser/img/rock.png"
+                                 ng-click="ctrl.showVisualiser = !ctrl.showVisualiser" height="50"></a>
+                <a href="#"><img src="components/visualiser/img/previous.png" ng-click="ctrl.previous()" height="50">
+                </a>
+                <a href="#"><img src="components/visualiser/img/next.png" ng-click="ctrl.next()" height="50"> </a>
+
+            </div>
+            <div class="col-sm-1">
+                <a href="#" id="toggleVolume"><img src="components/visualiser/img/volume.png" height="50" ng-click="!ctrl.showVolumeRange ? ctrl.showVolumeRange = true: ctrl.showVolumeRange = false;">
+                    <input id="ex4" ng-class="{'unhide': ctrl.showVolumeRange, 'hide': !ctrl.showVolumeRange}"
+                           type="text"
+                           data-slider-min="0"
+                           data-slider-max="10"
+                           data-slider-tooltip="hide"
+                           data-slider-step="1"
+                           data-slider-value="5"
+                           data-slider-orientation="vertical"
+                           data-slider-handle="custom"
+                    />
+                </a>
+            </div>
+            <div class="col-sm-1">
+                <a href="#"><img ng-show="ctrl.isLooped" src="components/visualiser/img/loop.png"
+                                 ng-click="ctrl.isLooped = !ctrl.isLooped" height="50"></a>
+                <a href="#"><img ng-show="!ctrl.isLooped" src="components/visualiser/img/no-loop.png"
+                                 ng-click="ctrl.isLooped = !ctrl.isLooped" height="50"></a>
+            </div>
+            <div id="music-player" class="col-sm-6">
+                <input type="range" class="plain-range" id="playback-range" name="track" min="0"
+                       max="{{ctrl.trackDuration}}" ng-model="ctrl.trackPosition"
+                       ng-change="ctrl.trackPositionChanged($event)">
+                <span style="float:left">{{ctrl.secondsToDuration(ctrl.trackPosition)}}</span>
+                <span style="float:right">{{ctrl.secondsToDuration(ctrl.trackDuration)}}</span>
+            </div>
+        </div>
+    </div>
+</main>

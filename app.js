@@ -61,16 +61,20 @@ app.get('/getSongList', function (req, res) {
     var response = [];
     var folderUrl = './components/visualiser/songs/';
     fs.readdir(folderUrl, function (err, files) {
-       for(var i=0; i< files.length; i++) {
-           getID3Data(folderUrl + files[i], function (tags) {
-               //TODO this wont work for default images. Do once DB is setup
-               tags.imageUrl = 'components/visualiser/thumbs/'+ tags.url.split('/').pop() + '.jpeg';
-               response.push(tags);
+        if(files) {
+            for (var i = 0; i < files.length; i++) {
+                getID3Data(folderUrl + files[i], function (tags) {
+                    //TODO this wont work for default images. Do once DB is setup
+                    tags.imageUrl = 'components/visualiser/thumbs/' + tags.url.split('/').pop() + '.jpeg';
+                    response.push(tags);
 
-               if(response.length >= files.length) {
-                   res.send(response);
-               }
-           });
+                    if (response.length >= files.length) {
+                        res.send(response);
+                    }
+                });
+            }
+        } else {
+            res.send(response);
         }
     })
 });

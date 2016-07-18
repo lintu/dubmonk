@@ -12,8 +12,8 @@
         }).
         state('main.visualiser', {
             url: '/dubmonk',
-            templateUrl: 'components/visualiser/visualiser.html',
-            controller: 'VisualiserController',
+            templateUrl: 'components/visualiser/visualiser-modern.html',
+            controller: 'VisualiserModernController',
             controllerAs: 'ctrl'
         });
     }
