@@ -26,8 +26,8 @@
             'convolver': null
         };
 
-        var WIDTH = 1000;
-        var HEIGHT = 700;
+        var WIDTH = document.getElementById('visualiser').clientWidth;
+        var HEIGHT = document.getElementById('visualiser').clientHeight;
 
         this.soundBuffer;
         this.isPaused = false;
@@ -90,7 +90,7 @@
         }
 
         function init() {
-            InfoService.addAlert('Welcome');
+            //InfoService.addAlert('Welcome');
 
             //Vertical range slider for volume
             new Slider('#ex4', {
@@ -467,7 +467,7 @@
             document.addEventListener('mousemove', onDocumentMouseMove, false);
             document.addEventListener('touchstart', onDocumentTouchStart, false);
             document.addEventListener('touchmove', onDocumentTouchMove, false);
-            window.addEventListener('resize', onWindowResize, false);
+           // window.addEventListener('resize', onWindowResize, false);
 
             initThreeGlobals();
 

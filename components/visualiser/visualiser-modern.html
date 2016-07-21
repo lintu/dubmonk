@@ -1,9 +1,10 @@
-<main >
-    <ul class="grid" masonry='{ "transitionDuration" : "0.4s" , "itemSelector" : ".grid__item"}'>
-        <li class="grid__item" masonry-tile ng-repeat="song in ctrl.songList track by $index" ng-click="ctrl.playFromList($index)">
-            <a class="grid__link">
-                <div class="img-wrap img-wrap--grid">
-                    <img class="img img--grid" src="{{song.imageUrl}}" alt="album1" />
+<main>
+    <ul class="grid hide" masonry='{ "transitionDuration" : "0.4s" , "itemSelector" : ".grid-item"}'>
+        <li class="grid-item" masonry-tile ng-repeat="song in ctrl.songList track by $index"
+            ng-click="ctrl.playFromList($index)">
+            <a class="grid-link">
+                <div class="img-wrap">
+                    <img class="img grid-img" src="{{song.imageUrl}}" alt="album1"/>
                 </div>
                 <span class="year">{{song.year}}</span>
                 <h2 class="artist">{{song.artist}}</h2>
@@ -12,47 +13,44 @@
         </li>
     </ul>
 
-    <!--Hello-->
-    <div class="row no-margin" style="height: 100%;">
-        <div class="col-sm-12 col-md-12 col-lg-12 col-xs-12 no-padding" style="height: 100%;">
-            <canvas id="visualiser" ng-show="ctrl.mainCanvasType === '2d'" style="width: 100%; height: 100%; display: block"></canvas>
-            <canvas id="3d-visualiser" ng-show="ctrl.mainCanvasType === '3d'" style="width: 100%; height: 100%; display: block"></canvas>
-        </div>
-    </div>
-    <!--<div id="vertical-slider-left" class="row no-margin">-->
+    <div class="player-container">
 
-        <!--<div class="vertical-slider-left-item " ng-repeat="smCanvas in ctrl.smallCanvasList"-->
-             <!--ng-click="ctrl.setMainItem($index)">-->
-            <!--<canvas ng-if="smCanvas.url === ''" class="sm-canvas" style="width: 100%; height: 100%; display: block"></canvas>-->
-            <!--<img ng-if="smCanvas.url !== ''" src="{{smCanvas.url}}" style="width:100%; height: 100%;">-->
-        <!--</div>-->
-    <!--</div>-->
-    <!--<div id="vertical-slider-right">-->
-        <!--<div class="list-group">-->
-            <!--<div class="vertical-slider-right-item row no-margin list-group-item" ng-click="ctrl.playFromList($index)"-->
-                 <!--ng-repeat="song in ctrl.songList track by $index">-->
-                <!--<div class="col-md-4  no-padding fit-in-parent">-->
-                    <!--<img src="{{song.imageUrl}}" class="img-responsive" >-->
-                <!--</div>-->
-                <!--<div class="col-md-8  no-padding fit-in-parent" ng-class="{'now-playing': $index === ctrl.nowPlayingIndex}">-->
-                    <!--<span ng-if="song.title"> {{song.title}}</span>-->
-                    <!--<span ng-if="!song.title"> Unknown</span>-->
-                    <!--<span ng-if="song.artist">{{song.artist}}</span>-->
-                    <!--<span ng-if="!song.artist">Unknown</span>-->
-                    <!--<span ng-if="song.album"> {{song.album}} </span>-->
-                    <!--<span ng-if="!song.album">Unknown </span>-->
-                <!--</div>-->
-            <!--</div>-->
-        <!--</div>-->
-    <!--</div>-->
-    <div id="controls" class="row no-margin">
+        <div class="player-info">
+            <h2 class="artist artist-player">Lena Glass</h2>
+            <h3 class="title title-player">Blue Moments</h3>
+            <span class="year year-player">1999</span>
+        </div>
+        <div class="player-stand">
+            <canvas id="visualiser" ng-show="ctrl.mainCanvasType === '2d'"
+                    style="width: 100%; height: 100%; display: block"></canvas>
+            <canvas id="3d-visualiser" ng-show="ctrl.mainCanvasType === '3d'"
+                    style="width: 100%; height: 100%; display: block"></canvas>
+        </div>
+
+        <div class="effects">
+            <!-- Realistic LP needle scratch effect toggle -->
+            <button class="effects-button effects-button-vinyleffect effects-button-active"
+                    aria-label="Toggle Vinyl effect">
+                2
+            </button>
+            <!-- Impulse responses -->
+            <div class="effects-list">
+            <button class="effects-button">1</button>
+                <button class="effects-button">2</button>
+                <button class="effects-button">3</button>
+            </div><!-- /effects__irs -->
+        </div>
+
+    </div>
+
+    <div id="controls" class="row no-margin hide">
         <div class="row">
             <div class="col-sm-6">
                 <!--<input name="file" id="upload-file" type="file" style="display: inline"/>-->
 
-                <label for="upload-file" class="" >
+                <label for="upload-file" class="">
                     <input class="input-file" name="file" id="upload-file"
-                           type="file" />
+                           type="file"/>
                     <span><img src="components/visualiser/img/select-audio.png" height="50"></span>
                     <i class="bento-icon-chevron-right"></i>
                 </label>
@@ -84,7 +82,8 @@
 
             </div>
             <div class="col-sm-1">
-                <a href="#" id="toggleVolume"><img src="components/visualiser/img/volume.png" height="50" ng-click="!ctrl.showVolumeRange ? ctrl.showVolumeRange = true: ctrl.showVolumeRange = false;">
+                <a href="#" id="toggleVolume"><img src="components/visualiser/img/volume.png" height="50"
+                                                   ng-click="!ctrl.showVolumeRange ? ctrl.showVolumeRange = true: ctrl.showVolumeRange = false;">
                     <input id="ex4" ng-class="{'unhide': ctrl.showVolumeRange, 'hide': !ctrl.showVolumeRange}"
                            type="text"
                            data-slider-min="0"
