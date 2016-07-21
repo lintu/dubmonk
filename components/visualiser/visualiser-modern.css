@@ -9,3 +9,15 @@
 .hide {
     display: none !important;
 }
+.play-list .now-playing {
+    color: white;
+}
+.play-list .not-playing {
+    color: #999999;
+}
+.seeker {
+    border-radius: 50%;
+    height: 100%;
+    width: 100%;
+    border: 1px solid red;
+}

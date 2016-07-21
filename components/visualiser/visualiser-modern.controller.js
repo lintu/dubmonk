@@ -467,7 +467,7 @@
             document.addEventListener('mousemove', onDocumentMouseMove, false);
             document.addEventListener('touchstart', onDocumentTouchStart, false);
             document.addEventListener('touchmove', onDocumentTouchMove, false);
-           // window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('resize', onWindowResize, false);
 
             initThreeGlobals();
 
@@ -527,7 +527,7 @@
                 //particles
                 var PI2 = Math.PI * 2;
                 var material = new THREE.SpriteCanvasMaterial({
-                    color: 'rgb(243, 156, 18)',
+                    color: 'red',
                     program: function (context) {
                         context.beginPath();
                         context.arc(0, 0, 0.5, 0, PI2, true);
@@ -586,7 +586,7 @@
                         vertex2.multiplyScalar(1 + a);
 
                         geometry.vertices.push(vertex2);
-                        obj.material.color = new THREE.Color("rgb(243, 156, 18)");
+                        obj.material.color = new THREE.Color("red");
                         obj.geometry = geometry;
                     } else {
                         break; //Assuming lines are added after circles
@@ -617,13 +617,16 @@
 
             function onWindowResize() {
 
-                windowHalfX = window.innerWidth / 2;
-                windowHalfY = window.innerHeight / 2;
+                var containerHeight = document.getElementsByClassName('player-stand')[0].clientHeight;
+                var containerWidth = document.getElementsByClassName('player-stand')[0].clientWidth;
+
+                windowHalfX = containerWidth / 2;
+                windowHalfY = containerHeight / 2;
 
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
 
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setSize(containerWidth, containerHeight);
             }
 
             function onDocumentMouseMove(event) {

@@ -168,10 +168,16 @@
     width: calc(90vmin + (0.2 * 80vmin));
     height: 90vmin;
     border-radius: 0.15em;
-    background: #45bd94;
+    background: #84899b;
     -webkit-transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
     transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
     pointer-events: none;
+}
+.play-list {
+    position:absolute;
+    width: 200px;
+    top: 200px;
+    left: 10px;
 }
 
 #controls {

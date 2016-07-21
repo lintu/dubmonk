@@ -14,17 +14,28 @@
     </ul>
 
     <div class="player-container">
-
         <div class="player-info">
-            <h2 class="artist artist-player">Lena Glass</h2>
-            <h3 class="title title-player">Blue Moments</h3>
-            <span class="year year-player">1999</span>
+            <h2 class="artist artist-player">{{ctrl.songList[ctrl.nowPlayingIndex].artist}}</h2>
+            <h3 class="title title-player">{{ctrl.songList[ctrl.nowPlayingIndex].title}}</h3>
+            <span class="year year-player">{{ctrl.songList[ctrl.nowPlayingIndex].year}}</span>
+        </div>
+
+        <div class="play-list">
+            <ul>
+                <li ng-repeat="song in ctrl.songList track by $index"
+                    ng-class="{'now-playing': $index == ctrl.nowPlayingIndex, 'not-playing': $index !== ctrl.nowPlayingIndex}">
+                    {{song.title}}
+                </li>
+            </ul>
         </div>
         <div class="player-stand">
+            <div class="seeker">
+
+            </div>
             <canvas id="visualiser" ng-show="ctrl.mainCanvasType === '2d'"
-                    style="width: 100%; height: 100%; display: block"></canvas>
+                    style="width: 0%; height: 0%; display: block"></canvas>
             <canvas id="3d-visualiser" ng-show="ctrl.mainCanvasType === '3d'"
-                    style="width: 100%; height: 100%; display: block"></canvas>
+                    style="width: 0%; height: 0%; display: block"></canvas>
         </div>
 
         <div class="effects">
@@ -43,7 +54,7 @@
 
     </div>
 
-    <div id="controls" class="row no-margin hide">
+    <div id="controls" class="row no-margin">
         <div class="row">
             <div class="col-sm-6">
                 <!--<input name="file" id="upload-file" type="file" style="display: inline"/>-->
