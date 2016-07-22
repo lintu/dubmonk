@@ -72,7 +72,6 @@
     position: absolute;
     max-width: 50vw;
     padding: 9vmin 0 0 9vmin;
-    pointer-events: none;
     z-index: 9999;
 }
 .year-player,
@@ -110,7 +109,6 @@
     background: #6a549b;
     -webkit-transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
     transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
-    pointer-events: none;
 }
 
 .effects {
@@ -156,7 +154,6 @@
     bottom: 0px;
     width: 100%;
     padding: 10px 20px;
-    border: 1px solid black;
 }
 
 .cbp-vimenu {
