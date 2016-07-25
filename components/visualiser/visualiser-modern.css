@@ -28,8 +28,6 @@
     outline: none;
 }
 
-/* image wrap and deco lp */
-
 .img-wrap {
     position: relative;
 }
@@ -44,6 +42,7 @@
     -webkit-transform: translate3d(0,0,0);
     transform: translate3d(0,0,0);
 }
+
 .artist {
     font-size: 0.85em;
     font-weight: normal;
@@ -78,6 +77,16 @@
     height: 100%;
     width: 100%;
 }
+.player-container {
+    position: relative;
+    height: 100vh;
+}
+.player-info {
+    position: absolute;
+    max-width: 50vw;
+    padding: 9vmin 0 0 9vmin;
+    z-index: 9999;
+}
 .player {
 
 }
@@ -106,12 +115,36 @@
     margin: 1em 0;
     border-width: 0.25vmin;
 }
-.player-info {
+
+.player-stand {
     position: absolute;
-    max-width: 50vw;
-    padding: 9vmin 0 0 9vmin;
+    top: 50%;
+    left: 45%;
+    width: 80vmin;
+    height: 90vmin;
+    border-radius: 0.15em;
+    background: #6a549b;
+    -webkit-transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
+    transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
+}
+.play-list {
+    position:absolute;
+    width: 200px;
+    top: 200px;
+    left: 10px;
+    z-index: 9999;
 }
 
+.play-list ul {
+    list-style-type: none;
+}
+
+#controls {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    padding: 10px 20px;
+}
 
 .hide {
     display: none !important;

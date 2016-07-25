@@ -1,114 +1,7 @@
 /*Grid*/
 .grid-item {
-    position: relative;
     width: 100%;
     min-width: 280px;
-    margin: 0 0 2em;
-    padding: 1em 4em 0;
-}
-
-.grid-link {
-    position: relative;
-    display: block;
-    color: #474283;
-    -webkit-perspective: 1200px;
-    perspective: 1200px;
-    cursor: pointer;
-    text-decoration: none !important;
-}
-
-.grid-link:hover {
-    color: #474283;
-    outline: none;
-}
-
-/* image wrap and deco lp */
-
-.grid-img {
-    position: relative;
-    max-width: 100%;
-    box-shadow: 2px 16px 26px 0px rgba(36, 33, 69, 0.3);
-    -webkit-transform: translate3d(0,0,0);
-    transform: translate3d(0,0,0);
-}
-.artist {
-    font-size: 0.85em;
-    font-weight: normal;
-    margin: 1em 0 0.5em;
-}
-
-.title {
-    font-size: 1em;
-    font-weight: bold;
-    margin: 0 0 0 1em;
-    white-space: nowrap;
-}
-
-.year {
-    font-size: 0.85em;
-    position: absolute;
-    z-index: 10;
-    right: 0;
-    margin: -1em -1em 0 0;
-    padding: 0.3em 0.5em;
-    color: #fff;
-    border: 2px solid;
-    -webkit-transform: translate3d(0,0,0);
-    transform: translate3d(0,0,0);
-}
-
-/*Player*/
-.canvas-container {
-    height: 100%;
-    width: 100%;
-}
-
-.player-container {
-    position: relative;
-    height: 100vh;
-
-}
-.player-info {
-    position: absolute;
-    max-width: 50vw;
-    padding: 9vmin 0 0 9vmin;
-    z-index: 9999;
-}
-.year-player,
-.artist-player,
-.title-player {
-    color: #fff;
-}
-.artist-player {
-    font-size: 8vmin;
-    line-height: 0.8;
-    margin: 0 0 0.25em 0;
-    white-space: nowrap;
-}
-.title-player {
-    font-size: 3vmin;
-    font-weight: normal;
-    margin: 0.25em 0 0;
-}
-
-.year-player {
-    font-size: 2vmin;
-    position: relative;
-    display: inline-block;
-    margin: 1em 0;
-    border-width: 0.25vmin;
-}
-
-.player-stand {
-    position: absolute;
-    top: 50%;
-    left: 45%;
-    width: 80vmin;
-    height: 90vmin;
-    border-radius: 0.15em;
-    background: #6a549b;
-    -webkit-transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
-    transform: translate3d(-50%, -50%, 0) translate3d(calc(0.06 * 80vmin), 0, 0);
 }
 
 .effects {
@@ -130,7 +23,6 @@
 .effects-list {
     margin: 0.5em 0 0;
     padding: 1em 0 0;
-
     border-left: 1px solid #379676;
     display: inherit;
 }
@@ -149,12 +41,6 @@
 }
 
 
-#controls {
-    position: fixed;
-    bottom: 0px;
-    width: 100%;
-    padding: 10px 20px;
-}
 .player-button {
     width: 30px;
     height: 30px;
