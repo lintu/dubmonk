@@ -92,14 +92,14 @@
         function init() {
             //InfoService.addAlert('Welcome');
 
-            //Vertical range slider for volume
-            new Slider('#ex4', {
-                reversed : true,
-                formatter: function(value) {
-                    _self.gainValue = value;
-                    gainValueChanged()
-                }
-            });
+            // //Vertical range slider for volume
+            // new Slider('#ex4', {
+            //     reversed : true,
+            //     formatter: function(value) {
+            //         _self.gainValue = value;
+            //         gainValueChanged()
+            //     }
+            // });
 
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             _self.vManager = new VisualisationManager(_self.smallCanvasList, _self.mainVisualiserIndex);
