@@ -4,9 +4,8 @@
     min-width: 280px;
 }
 
-
 .effects {
-    position: absolute;
+    position: fixed;
     top: 10vmin;
     right: 0;
     bottom: 5vmin;
@@ -48,4 +47,7 @@
 .icon {
     top: 20px;
     left: 20px;
+}
+.upload-section {
+
 }

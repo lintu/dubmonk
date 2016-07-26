@@ -69,6 +69,7 @@
     transform: translate3d(0,0,0);
 }
 
+/*Player*/
 .song-desc {
     display: inline;
 }
@@ -139,6 +140,23 @@
     list-style-type: none;
 }
 
+.upload-section {
+    position: fixed;
+    top: 15vmin;
+    right: 10vmin;
+}
+.upload-section canvas {
+    display: block;
+    height: 100%;
+    width: 100%;
+    position:absolute;
+    top:0px;
+    left:0px;
+}
+.upload-file-details {
+    bottom: 0px;
+    left:0px;
+}
 #controls {
     position: absolute;
     bottom: 0px;
@@ -170,7 +188,6 @@
     border: 0;
     border-radius: 50%;
     background: #474283;
-
 }
 .player-button:hover {
     color: #474283;

@@ -65,6 +65,9 @@
         this.playFromList = playFromList;
         this.setMainItem = setMainItem;
 
+        this.showUploadButton = false;
+        this.fileToUpload = null;
+        this.onFileChange = onFileChange;
         this.nowPlayingIndex = 0;
 
         this.trackPositionChanged = trackPositionChanged;
@@ -100,12 +103,16 @@
             //         gainValueChanged()
             //     }
             // });
-
+            initEventHandlers();
             _self.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             _self.vManager = new VisualisationManager(_self.smallCanvasList, _self.mainVisualiserIndex);
             setMainItem(_self.mainVisualiserIndex);
             setupNodes();
             getSongList();
+        }
+
+        function initEventHandlers() {
+            document.getElementById('upload-file').onchange = onFileChange;
         }
 
         function processImages(blob, callback) {
@@ -341,15 +348,28 @@
             }, 0);
         }
 
-        function upload() {
-            var file = document.getElementById('upload-file').files[0];
+        function onFileChange(file) {
 
             if(file) {
+                _self.showUploadButton = true;
+                if (!$scope.$$phase) {
+                    $scope.$digest();
+                }
+            }
+        }
+
+        function upload() {
+            _self.fileToUpload = document.getElementById('upload-file').files[0];
+
+            if(_self.fileToUpload) {
+                _self.showUploadButton = false;
+                var uploadPercentage = document.getElementById('upload-percentage');
                 InfoService.addAlert('Starting upload...');
-                processImages(file, function(dataUri, format){
-                    if(file.type === 'audio/mp3') {
+
+                processImages(_self.fileToUpload, function(dataUri, format){
+                    if(_self.fileToUpload.type === 'audio/mp3') {
                         var fd = new FormData();
-                        fd.append('file', file);
+                        fd.append('file', _self.fileToUpload);
                         fd.append('data', dataUri);
                         fd.append('format', format? format.split('/')[1] : '');
                         var xhr = new XMLHttpRequest();
@@ -359,18 +379,20 @@
                         xhr.onreadystatechange = function () {
                             if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                                 InfoService.addAlert('Yes done with upload. you can start listening...');
-
+                                uploadPercentage.textContent = '';
                                 _self.songList.push(JSON.parse(xhr.responseText));
                                 if(!$scope.$$phase) {
                                     $scope.$digest();
                                 }
-                                // $timeout(function () {
-                                //     masonGrid.layout();
-                                // }, 0);
+                            }
+                        };
+                        xhr.onprogress = function(event) {
+                            if(event.lengthComputable) {
+                                uploadPercentage.textContent = (event.loaded / event.total)*100;
                             }
                         }
                     } else {
-                        alert('haha. only mp3 files');
+                        alert('haha... only mp3 files');
                     }
                 });
 
